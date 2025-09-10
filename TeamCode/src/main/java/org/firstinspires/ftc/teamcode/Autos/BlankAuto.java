@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Utility.OdometryGlobalCoordinatePosition;
 
 
@@ -40,7 +41,8 @@ public class BlankAuto extends LinearOpMode {
         frontright = hardwareMap.get(DcMotor.class, "frontright");
         backleft = hardwareMap.get(DcMotor.class, "backleft");
         backright = hardwareMap.get(DcMotor.class, "backright");
-        test = hardwareMap.get(Servo.class, "test");
+
+        WebcamName webcamName = hardwareMap.get(WebcamName.class, "Webcam1");
 
         telemetry.addData("Status", "Init Complete");
         telemetry.update();

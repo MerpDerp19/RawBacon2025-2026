@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
 @TeleOp(name="TeleopA")
 //@ServoType(flavor = ServoFlavor.CONTINUOUS)
 //@DeviceProperties(xmlTag = "Servo", name = "@string/configTypeServo")
@@ -60,6 +62,8 @@ public class TeleOpA extends OpMode {
         frictionStick = hardwareMap.get(Servo.class, "frictionstick");
         samplePivotMotor = hardwareMap.get(DcMotor.class, "pivot");
         sampleExtensionMotor = hardwareMap.get(DcMotor.class, "extension");
+
+        WebcamName webcamName = hardwareMap.get(WebcamName.class, "Webcam1");
 
 
         frontright.setDirection(DcMotorSimple.Direction.REVERSE);
