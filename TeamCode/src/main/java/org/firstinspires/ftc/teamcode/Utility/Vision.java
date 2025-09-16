@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.opencv.*;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 @TeleOp
@@ -28,6 +29,8 @@ public class Vision extends LinearOpMode{
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam1"))
                 .setCameraResolution(new Size(640, 480))
                 .build();
+
+        WebcamName webcamName = hardwareMap.get(WebcamName.class, "Webcam1");
 
 
         waitForStart();
