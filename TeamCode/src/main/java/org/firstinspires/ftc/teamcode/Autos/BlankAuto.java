@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Utility.OdometryGlobalCoordinatePosition;
 
 
-@Autonomous(name = "SimpleAutoA")
+@Autonomous(name = "BlankAuto")
 public class BlankAuto extends LinearOpMode {
     //Drive motors
     DcMotor right_front, right_back, left_front, left_back;
@@ -26,7 +26,7 @@ public class BlankAuto extends LinearOpMode {
     DcMotor frontright;
     DcMotor backleft;
     DcMotor backright;
-    Servo test;
+    DcMotor catapult;
 
     org.firstinspires.ftc.teamcode.Utility.OdometryGlobalCoordinatePosition globalPositionUpdate;
 
@@ -41,13 +41,15 @@ public class BlankAuto extends LinearOpMode {
         frontright = hardwareMap.get(DcMotor.class, "frontright");
         backleft = hardwareMap.get(DcMotor.class, "backleft");
         backright = hardwareMap.get(DcMotor.class, "backright");
+        catapult = hardwareMap.get(DcMotor.class, "catapult");
+
 
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "Webcam1");
 
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
 
-
+        catapult.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         waitForStart();
 
@@ -57,16 +59,15 @@ public class BlankAuto extends LinearOpMode {
         positionThread.start();
 
 
-
-
         // A goToPosition method to copy and paste from
         //goToPosition(0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 0.5*COUNTS_PER_INCH);
 
         // V START WRITING YOUR AUTO HERE!!!! V
 
 
-
-
+        catapult.setPower(0.1);
+        catapult.setTargetPosition(20);
+        catapult.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
 
 
