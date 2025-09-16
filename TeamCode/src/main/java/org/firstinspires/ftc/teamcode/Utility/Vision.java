@@ -12,8 +12,11 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 @TeleOp
 public class Vision extends LinearOpMode{
 
+
+
     @Override
     public void runOpMode() throws InterruptedException{
+
 
         AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder()
                 .setDrawTagID(true)
@@ -33,13 +36,13 @@ public class Vision extends LinearOpMode{
             if (tagProcessor.getDetections().size() > 0 ){
                 AprilTagDetection tag = tagProcessor.getDetections().get(0);
 
+                telemetry.addData("id: ", tag.id);
                 telemetry.addData("x: ", tag.ftcPose.x);
                 telemetry.addData("y: ", tag.ftcPose.y);
                 telemetry.addData("z: ", tag.ftcPose.x);
                 telemetry.addData("roll: ", tag.ftcPose.roll);
                 telemetry.addData("pitch: ", tag.ftcPose.pitch);
                 telemetry.addData("yaw: ", tag.ftcPose.yaw);
-                telemetry.addData("id: ", tag.id);
 
 
                 telemetry.update();
