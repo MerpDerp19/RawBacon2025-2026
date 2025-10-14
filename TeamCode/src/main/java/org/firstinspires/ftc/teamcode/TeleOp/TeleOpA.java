@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -22,13 +23,14 @@ public class TeleOpA extends OpMode {
     DcMotor frontright;
     DcMotor backleft;
     DcMotor backright;
-    DcMotor armMotor;
+//    DcMotor armMotor;
 //    Servo claw;
 //    DcMotor ascentMotor;
 //    Servo clawRotation;
 //    DcMotor samplePivotMotor;
-    DcMotor sampleExtensionMotor;
+//    DcMotor sampleExtensionMotor;
 //    Servo frictionStick;
+    CRServo launcherTest;
 
 
 
@@ -57,10 +59,11 @@ public class TeleOpA extends OpMode {
         frontright = hardwareMap.get(DcMotor.class, "frontright");
         backleft = hardwareMap.get(DcMotor.class, "backleft");
         backright = hardwareMap.get(DcMotor.class, "backright");
-        armMotor = hardwareMap.get(DcMotor.class, "armmotor");
-        sampleExtensionMotor = hardwareMap.get(DcMotor.class, "extension");
+ //       armMotor = hardwareMap.get(DcMotor.class, "armmotor");
+ //       sampleExtensionMotor = hardwareMap.get(DcMotor.class, "extension");
+        launcherTest = hardwareMap.get(CRServo.class, "launchertest");
 
-        WebcamName webcamName = hardwareMap.get(WebcamName.class, "Webcam1");
+//        WebcamName webcamName = hardwareMap.get(WebcamName.class, "Webcam1");
 
 
         frontright.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -70,9 +73,9 @@ public class TeleOpA extends OpMode {
 
         WheelSpeed = 0.5;
 
-        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+//        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//
+//        armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
 
@@ -100,6 +103,10 @@ public class TeleOpA extends OpMode {
      */
     @Override
     public void loop() {
+
+        if (gamepad1.a)  launcherTest.setPower(1);
+
+        if (gamepad1.x) launcherTest.setPower(0);
 
 //        if (gamepad2.right_trigger == 1 && gamepad2.left_trigger == 1)
 //            armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
