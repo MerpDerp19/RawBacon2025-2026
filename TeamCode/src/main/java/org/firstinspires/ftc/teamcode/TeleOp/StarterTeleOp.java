@@ -215,7 +215,7 @@ public class StarterTeleOp extends OpMode {
          * queuing a shot.
          */
         if (gamepad1.y) {
-            launcher.setVelocity(45);
+            launcher.setVelocity(50);
             //launcher.setPower(0.2);
         } else if (gamepad1.b) { // stop flywheel
             launcher.setVelocity(STOP_SPEED);
@@ -264,8 +264,15 @@ public class StarterTeleOp extends OpMode {
         /*
          * Send calculated power to wheels
          */
-        leftDrive.setPower(leftPower * 0.75);
-        rightDrive.setPower(rightPower * 0.75);
+        if (!gamepad1.left_bumper) {
+            leftDrive.setPower(leftPower * 0.75);
+            rightDrive.setPower(rightPower * 0.75);
+        } else
+        {
+            leftDrive.setPower(leftPower * 0.25);
+            rightDrive.setPower(rightPower * 0.25);
+
+        }
     }
 
     void launch(boolean shotRequested) {
