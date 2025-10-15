@@ -68,8 +68,6 @@ public class StarterAuto extends OpMode
 {
 
     final double FEED_TIME = 0.20; //The feeder servos run this long when a shot is requested.
-    final double LAUNCH_TIME = 2;
-
 
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
@@ -77,8 +75,8 @@ public class StarterAuto extends OpMode
      * velocity. Here we are setting the target and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 50;
-    final double LAUNCHER_MIN_VELOCITY = 45;
+    final double LAUNCHER_TARGET_VELOCITY = 1125;
+    final double LAUNCHER_MIN_VELOCITY = 1075;
 
     /*
      * The number of seconds that we wait between each of our 3 shots from the launcher. This
@@ -115,8 +113,6 @@ public class StarterAuto extends OpMode
     private ElapsedTime shotTimer = new ElapsedTime();
     private ElapsedTime feederTimer = new ElapsedTime();
     private ElapsedTime driveTimer = new ElapsedTime();
-    private ElapsedTime launcherTimer = new ElapsedTime();
-
 
     // Declare OpMode members.
     private DcMotor leftDrive = null;
@@ -284,7 +280,6 @@ public class StarterAuto extends OpMode
      */
     @Override
     public void start() {
-        autonomousState = AutonomousState.LAUNCH;
     }
 
     /*
@@ -412,17 +407,15 @@ public class StarterAuto extends OpMode
                 if (shotRequested) {
                     launchState = LaunchState.PREPARE;
                     shotTimer.reset();
-                    launcherTimer.reset();
                 }
                 break;
             case PREPARE:
                 launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (launcherTimer.seconds() > LAUNCH_TIME){
+                if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY){
                     launchState = LaunchState.LAUNCH;
                     leftFeeder.setPower(1);
                     rightFeeder.setPower(1);
                     feederTimer.reset();
-
                 }
                 break;
             case LAUNCH:
