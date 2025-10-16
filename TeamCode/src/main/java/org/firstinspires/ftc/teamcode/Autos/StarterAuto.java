@@ -69,6 +69,7 @@ public class StarterAuto extends OpMode
 
     final double FEED_TIME = 0.20; //The feeder servos run this long when a shot is requested.
 
+    final double LAUNCH_TIME = 2;
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
      * to read the current speed of the motor and apply more or less power to keep it at a constant
@@ -112,6 +113,7 @@ public class StarterAuto extends OpMode
      */
     private ElapsedTime shotTimer = new ElapsedTime();
     private ElapsedTime feederTimer = new ElapsedTime();
+    private ElapsedTime launcherTimer = new ElapsedTime();
     private ElapsedTime driveTimer = new ElapsedTime();
 
     // Declare OpMode members.
@@ -407,11 +409,12 @@ public class StarterAuto extends OpMode
                 if (shotRequested) {
                     launchState = LaunchState.PREPARE;
                     shotTimer.reset();
+                    launcherTimer.reset();
                 }
                 break;
             case PREPARE:
                 launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY){
+                if (launcher.getVelocity() > LAUNCH_TIME){
                     launchState = LaunchState.LAUNCH;
                     leftFeeder.setPower(1);
                     rightFeeder.setPower(1);
