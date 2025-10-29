@@ -318,6 +318,9 @@ public class StarterTeleOpButDifferent extends OpMode {
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.addData("motorSpeed", launcher.getVelocity());
         telemetry.addData("Launch State", launchState);
+        //here's some life telemetry
+        telemetry.addLine(String.valueOf(lifeTicks));
+        telemetry.addLine(String.valueOf(lifeRounds));
         //here we display the board
         for (lifeLine = 0; lifeLine < 64; lifeLine += 8){
             telemetry.addLine(lifeDisplay[lifeLine] + lifeDisplay[lifeLine + 1] + lifeDisplay[lifeLine + 2] + lifeDisplay[lifeLine + 3] + lifeDisplay[lifeLine + 4] + lifeDisplay[lifeLine + 5] +  lifeDisplay[lifeLine + 6] + lifeDisplay[lifeLine + 7]);
