@@ -2,15 +2,17 @@ package org.firstinspires.ftc.teamcode.Autos;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Utility.OdometryGlobalCoordinatePosition;
 
 
-@Autonomous(name = "BlankAuto")
+@Autonomous(name = "SimpleAutoA")
 public class BlankAuto extends LinearOpMode {
     //Drive motors
     DcMotor right_front, right_back, left_front, left_back;
@@ -26,12 +28,41 @@ public class BlankAuto extends LinearOpMode {
     DcMotor frontright;
     DcMotor backleft;
     DcMotor backright;
-    DcMotor catapult;
+    Servo test;
+
+    private enum LaunchState {
+        IDLE,
+        PREPARE,
+        LAUNCH,
+    }
+    private BlankAuto.LaunchState launchState;
+    private enum AutonomousState {
+        LAUNCH,
+        WAIT_FOR_LAUNCH,
+        DRIVING_AWAY_FROM_GOAL,
+        ROTATING,
+        DRIVING_OFF_LINE,
+        COMPLETE;
+    }
+    private AutonomousState autonomousState;
+
+
+
+    private DcMotorEx launcher = null;
+    private CRServo leftFeeder = null;
+    private CRServo rightFeeder = null;
 
     org.firstinspires.ftc.teamcode.Utility.OdometryGlobalCoordinatePosition globalPositionUpdate;
 
 
+    private ElapsedTime shotTimer = new ElapsedTime();
+    private ElapsedTime feederTimer = new ElapsedTime();
+    private ElapsedTime launcherTimer = new ElapsedTime();
 
+    final double LAUNCHER_TARGET_VELOCITY = 50;
+    final double LAUNCH_TIME = 2;
+    final double FEED_TIME = 0.20;
+    final double TIME_BETWEEN_SHOTS = 2;
     @Override
     public void runOpMode() throws InterruptedException {
         //Initialize hardware map values. PLEASE UPDATE THESE VALUES TO MATCH YOUR CONFIGURATION
@@ -41,15 +72,18 @@ public class BlankAuto extends LinearOpMode {
         frontright = hardwareMap.get(DcMotor.class, "frontright");
         backleft = hardwareMap.get(DcMotor.class, "backleft");
         backright = hardwareMap.get(DcMotor.class, "backright");
-        catapult = hardwareMap.get(DcMotor.class, "catapult");
-
-
-        WebcamName webcamName = hardwareMap.get(WebcamName.class, "Webcam1");
+        test = hardwareMap.get(Servo.class, "test");
+        launcher = hardwareMap.get(DcMotorEx.class,"launcher");
+        leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
+        rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
 
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
 
-        catapult.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        autonomousState = AutonomousState.LAUNCH;
+        launchState = LaunchState.IDLE;
+
+
 
         waitForStart();
 
@@ -59,15 +93,16 @@ public class BlankAuto extends LinearOpMode {
         positionThread.start();
 
 
+
+
         // A goToPosition method to copy and paste from
         //goToPosition(0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 0.5*COUNTS_PER_INCH);
 
         // V START WRITING YOUR AUTO HERE!!!! V
 
 
-        catapult.setPower(0.1);
-        catapult.setTargetPosition(20);
-        catapult.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
 
 
 
@@ -278,5 +313,36 @@ public class BlankAuto extends LinearOpMode {
      */
     private double calculateY(double desiredAngle, double speed) {
         return Math.cos(Math.toRadians(desiredAngle)) * speed;
+    }
+    boolean launch(boolean shotRequested){
+        switch (launchState) {
+            case IDLE:
+                if (shotRequested) {
+                    launchState = BlankAuto.LaunchState.PREPARE;
+                    shotTimer.reset();
+                    launcherTimer.reset();
+                }
+                break;
+            case PREPARE:
+                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+                if (launcherTimer.seconds() > LAUNCH_TIME){
+                    launchState = BlankAuto.LaunchState.LAUNCH;
+                    leftFeeder.setPower(1);
+                    rightFeeder.setPower(1);
+                    feederTimer.reset();
+                }
+                break;
+            case LAUNCH:
+                if (feederTimer.seconds() > FEED_TIME) {
+                    leftFeeder.setPower(0);
+                    rightFeeder.setPower(0);
+
+                    if(shotTimer.seconds() > TIME_BETWEEN_SHOTS){
+                        launchState = BlankAuto.LaunchState.IDLE;
+                        return true;
+                    }
+                }
+        }
+        return false;
     }
 }
