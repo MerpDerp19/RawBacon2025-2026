@@ -76,8 +76,13 @@ public class StarterTeleOp extends OpMode {
     final double LAUNCHER_MIN_VELOCITY = 475;
 
     // Declare OpMode members.
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+//    private DcMotor leftDrive = null;
+//    private DcMotor rightDrive = null;
+    DcMotor frontleft;
+    DcMotor frontright;
+    DcMotor backleft;
+    DcMotor backright;
+
     private DcMotorEx launcher = null;
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
@@ -125,8 +130,13 @@ public class StarterTeleOp extends OpMode {
          * to 'get' must correspond to the names assigned during the robot configuration
          * step.
          */
-        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+//        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
+//        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        frontleft = hardwareMap.get(DcMotor.class, "frontleft");
+        frontright = hardwareMap.get(DcMotor.class, "frontright");
+        backleft = hardwareMap.get(DcMotor.class, "backleft");
+        backright = hardwareMap.get(DcMotor.class, "backright");
+
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
@@ -138,8 +148,8 @@ public class StarterTeleOp extends OpMode {
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90 Deg drives may require direction flips
          */
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+//        leftDrive.setDirection(DcMotor.Direction.REVERSE);
+//        rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         /*
          * Here we set our launcher to the RUN_USING_ENCODER runmode.
@@ -155,8 +165,8 @@ public class StarterTeleOp extends OpMode {
          * slow down much faster when it is coasting. This creates a much more controllable
          * drivetrain. As the robot stops much quicker.
          */
-        leftDrive.setZeroPowerBehavior(BRAKE);
-        rightDrive.setZeroPowerBehavior(BRAKE);
+//        leftDrive.setZeroPowerBehavior(BRAKE);
+//        rightDrive.setZeroPowerBehavior(BRAKE);
         launcher.setZeroPowerBehavior(BRAKE);
 
         /*
@@ -167,6 +177,12 @@ public class StarterTeleOp extends OpMode {
 
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
         launcher.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        backright.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontright.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
+
 
         /*
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
@@ -208,7 +224,10 @@ public class StarterTeleOp extends OpMode {
          * both motors work to rotate the robot. Combinations of these inputs can be used to create
          * more complex maneuvers.
          */
-        arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+        //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+        //sets drivetrain
+        omniwheelDrive();
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
@@ -265,15 +284,32 @@ public class StarterTeleOp extends OpMode {
          * Send calculated power to wheels
          */
         if (!gamepad1.left_bumper) {
-            leftDrive.setPower(leftPower * 0.75);
-            rightDrive.setPower(rightPower * 0.75);
+//            leftDrive.setPower(leftPower * 0.75);
+//            rightDrive.setPower(rightPower * 0.75);
         } else
         {
-            leftDrive.setPower(leftPower * 0.25);
-            rightDrive.setPower(rightPower * 0.25);
+//            leftDrive.setPower(leftPower * 0.25);
+//            rightDrive.setPower(rightPower * 0.25);
 
         }
     }
+
+    void omniwheelDrive(){
+        double Pad2RightStickY = -gamepad2.right_stick_y;
+        double LeftStickY = gamepad1.left_stick_y;
+        double LeftStickX = -gamepad1.left_stick_x;
+        double RightStickX = -gamepad1.right_stick_x;
+
+
+        frontright.setPower((-RightStickX / 1.5 + (LeftStickY - LeftStickX)) * 0.75);
+        backright.setPower((-RightStickX / 1.5 + (LeftStickY + LeftStickX)) * 0.75);
+        frontleft.setPower((RightStickX / 1.5 + (LeftStickY + LeftStickX)) * 0.75);
+        backleft.setPower((RightStickX / 1.5 + (LeftStickY - LeftStickX)) * 0.75);
+
+
+    }
+
+
 
     void launch(boolean shotRequested) {
         switch (launchState) {
