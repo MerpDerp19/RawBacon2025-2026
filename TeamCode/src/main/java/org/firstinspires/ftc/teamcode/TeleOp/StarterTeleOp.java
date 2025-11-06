@@ -227,14 +227,19 @@ public class StarterTeleOp extends OpMode {
         //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         //sets drivetrain
-        omniwheelDrive();
+        if (gamepad1.left_bumper){
+            omniwheelDrive(0.3);
+        }
+        else {
+            omniwheelDrive(0.75);
+        }
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
          */
         if (gamepad2.y) {
-            launcher.setVelocity(50);
+            launcher.setVelocity(47);
             //launcher.setPower(0.2);
         } else if (gamepad2.b) { // stop flywheel
             launcher.setVelocity(STOP_SPEED);
@@ -242,8 +247,8 @@ public class StarterTeleOp extends OpMode {
         }
 
         if (gamepad1.a){
-            leftFeeder.setPower(1);
-            rightFeeder.setPower(1);
+//            leftFeeder.setPower(1);
+//            rightFeeder.setPower(1);
 
 
         }
@@ -294,17 +299,17 @@ public class StarterTeleOp extends OpMode {
         }
     }
 
-    void omniwheelDrive(){
+    void omniwheelDrive(double speed){
         double Pad2RightStickY = -gamepad2.right_stick_y;
         double LeftStickY = gamepad1.left_stick_y;
         double LeftStickX = -gamepad1.left_stick_x;
         double RightStickX = -gamepad1.right_stick_x;
 
 
-        frontright.setPower((-RightStickX / 1.5 + (LeftStickY - LeftStickX)) * 0.75);
-        backright.setPower((-RightStickX / 1.5 + (LeftStickY + LeftStickX)) * 0.75);
-        frontleft.setPower((RightStickX / 1.5 + (LeftStickY + LeftStickX)) * 0.75);
-        backleft.setPower((RightStickX / 1.5 + (LeftStickY - LeftStickX)) * 0.75);
+        frontright.setPower((-RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
+        backright.setPower((-RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
+        frontleft.setPower((RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
+        backleft.setPower((RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
 
 
     }
