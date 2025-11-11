@@ -6,14 +6,14 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Utility.OdometryGlobalCoordinatePosition;
 
 
-@Autonomous(name = "RedAuto")
-public class RedAuto extends LinearOpMode {
+@Autonomous(name = "Shoot3LeaveBlue")
+public class Shoot3LeaveBlue extends LinearOpMode {
     //Drive motors
     DcMotor right_front, right_back, left_front, left_back;
     //Odometry Wheels
@@ -24,6 +24,7 @@ public class RedAuto extends LinearOpMode {
     //Hardware Map Names for drive motors and odometry wheels. THIS WILL CHANGE ON EACH ROBOT, YOU NEED TO UPDATE THESE VALUES ACCORDINGLY
     String rfName = "frontright", rbName = "backright", lfName = "frontleft", lbName = "backleft";
     String verticalLeftEncoderName = rbName, verticalRightEncoderName = lfName, horizontalEncoderName = rfName;
+    int color;
     DcMotor frontleft;
     DcMotor frontright;
     DcMotor backleft;
@@ -34,7 +35,7 @@ public class RedAuto extends LinearOpMode {
         PREPARE,
         LAUNCH,
     }
-    private RedAuto.LaunchState launchState;
+    private Shoot3LeaveBlue.LaunchState launchState;
 
     private enum AutoState {
         LAUNCH,
@@ -42,7 +43,7 @@ public class RedAuto extends LinearOpMode {
         DRIVING_AWAY_FROM_GOAL,
         COMPLETE;
     }
-    private RedAuto.AutoState autoState;
+    private Shoot3LeaveBlue.AutoState autoState;
     /*private enum AutonomousState {
         LAUNCH,
         WAIT_FOR_LAUNCH,
@@ -100,6 +101,7 @@ public class RedAuto extends LinearOpMode {
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
+        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
 
 
@@ -109,30 +111,49 @@ public class RedAuto extends LinearOpMode {
         // V START WRITING YOUR AUTO HERE!!!! V
 
         launcher.setVelocity(50);
+        sleep(4000);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(3000);
+
+        //sleep(30000);
+
+        frontleft.setPower(-0.5);
+        frontright.setPower(-0.5);
+        backleft.setPower(-0.5);
+        backright.setPower(-0.5);
+        sleep(1000);
+        frontleft.setPower(0.5);
+        frontright.setPower(-0.5);
+        backleft.setPower(-0.5);
+        backright.setPower(0.5);
         sleep(2000);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(200);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(200);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(200);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(200);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
+        frontleft.setPower(0);
+        frontright.setPower(0);
+        backleft.setPower(0);
+        backright.setPower(0);
+
         sleep(30000);
 
 
@@ -415,7 +436,7 @@ public class RedAuto extends LinearOpMode {
         switch (launchState) {
             case IDLE:
                 if (shotRequested) {
-                    launchState = RedAuto.LaunchState.PREPARE;
+                    launchState = Shoot3LeaveBlue.LaunchState.PREPARE;
                     shotTimer.reset();
                     launcherTimer.reset();
                 }
@@ -423,7 +444,7 @@ public class RedAuto extends LinearOpMode {
             case PREPARE:
                 launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
                 if (launcherTimer.seconds() > LAUNCH_TIME){
-                    launchState = RedAuto.LaunchState.LAUNCH;
+                    launchState = Shoot3LeaveBlue.LaunchState.LAUNCH;
                     leftFeeder.setPower(1);
                     rightFeeder.setPower(1);
                     feederTimer.reset();
@@ -435,7 +456,7 @@ public class RedAuto extends LinearOpMode {
                     rightFeeder.setPower(0);
 
                     if(shotTimer.seconds() > TIME_BETWEEN_SHOTS){
-                        launchState = RedAuto.LaunchState.IDLE;
+                        launchState = Shoot3LeaveBlue.LaunchState.IDLE;
                         return true;
                     }
                 }
