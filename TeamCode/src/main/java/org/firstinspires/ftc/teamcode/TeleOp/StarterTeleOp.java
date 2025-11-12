@@ -42,6 +42,14 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.teamcode.Utility.*;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
+import java.util.List;
+
 
 /*
  * This file includes a teleop (driver-controlled) file for the goBILDA® StarterBot for the
@@ -61,7 +69,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp(name = "StarterBotTeleop", group = "StarterBot")
 //@Disabled
 public class StarterTeleOp extends OpMode {
-    final double FEED_TIME_SECONDS = 0.2; //The feeder servos run this long when a shot is requested.
+    final double FEED_TIME_SECONDS = 0.15; //The feeder servos run this long when a shot is requested.
     final double LAUNCHER_TIME_SECONDS = 0;
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
@@ -90,6 +98,7 @@ public class StarterTeleOp extends OpMode {
     ElapsedTime feederTimer = new ElapsedTime();
 
     ElapsedTime launcherTimer = new ElapsedTime();
+
     /*
      * TECH TIP: State Machines
      * We use a "state machine" to control our launcher motor and feeder servos in this program.
@@ -118,12 +127,19 @@ public class StarterTeleOp extends OpMode {
     // Setup a variable for each drive wheel to save power level for telemetry
     double leftPower;
     double rightPower;
+
+    private AprilTagVision vision = new AprilTagVision();
+
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
         launchState = LaunchState.IDLE;
+
+
+        vision.init(hardwareMap);
 
         /*
          * Initialize the hardware variables. Note that the strings used here as parameters
@@ -158,7 +174,7 @@ public class StarterTeleOp extends OpMode {
          * into the port right beside the motor itself. And that the motors polarity is consistent
          * through any wiring.
          */
-     //   launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //   launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         /*
          * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
@@ -226,7 +242,27 @@ public class StarterTeleOp extends OpMode {
          */
         //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-        //sets drivetrain
+        //april tag vision
+        List<AprilTagDetection> detections = vision.getDetections();
+        if (!detections.isEmpty()) {
+            AprilTagDetection tag = detections.get(0);
+            telemetry.addData("Tag ID", tag.id);
+            if (tag.ftcPose != null) {
+                telemetry.addData("x", tag.ftcPose.x);
+                telemetry.addData("y", tag.ftcPose.y);
+                telemetry.addData("z", tag.ftcPose.z);
+            }
+        } else {
+            telemetry.addLine("No tags detected");
+        }
+        telemetry.update();
+
+
+        vision.close();
+
+
+
+    //sets drivetrain
         if (gamepad1.left_bumper){
             omniwheelDrive(0.3);
         }
@@ -239,7 +275,7 @@ public class StarterTeleOp extends OpMode {
          * queuing a shot.
          */
         if (gamepad2.y) {
-            launcher.setVelocity(47);
+            launcher.setVelocity(50);
             //launcher.setPower(0.2);
         } else if (gamepad2.b) { // stop flywheel
             launcher.setVelocity(STOP_SPEED);
