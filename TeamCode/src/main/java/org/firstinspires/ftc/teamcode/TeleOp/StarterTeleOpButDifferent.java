@@ -65,7 +65,7 @@ public class StarterTeleOpButDifferent extends OpMode {
     final double LAUNCHER_TIME_SECONDS = 0;
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
-    final double LIFE_TPR = 10000;
+    final double LIFE_TPR = 500;
 
 
     /*
@@ -290,8 +290,10 @@ public class StarterTeleOpButDifferent extends OpMode {
             lifeRounds++;
             for(lifeTile = 0; lifeTile < 64; lifeTile++) {
                 for(lifeNeighbor = 0; lifeNeighbor < 8; lifeNeighbor++) {
-                    if(lifeBoard[lifeTile - lifeNeighborRelativeList[lifeNeighbor]] == 1) {
-                        lifeNeighbors++;
+                    if (lifeTile - lifeNeighborRelativeList[lifeNeighbor] >= 0) {
+                        if (lifeBoard[lifeTile - lifeNeighborRelativeList[lifeNeighbor]] == 1) {
+                            lifeNeighbors++;
+                        }
                     }
                 }
                 if(lifeNeighbors == 3){
