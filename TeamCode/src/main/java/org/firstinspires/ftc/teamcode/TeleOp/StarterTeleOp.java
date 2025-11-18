@@ -255,10 +255,10 @@ public class StarterTeleOp extends OpMode {
         } else {
             telemetry.addLine("No tags detected");
         }
-        telemetry.update();
 
 
-        vision.close();
+
+
 
 
 
@@ -315,6 +315,7 @@ public class StarterTeleOp extends OpMode {
      */
     @Override
     public void stop() {
+        vision.close();
     }
 
     void arcadeDrive(double forward, double rotate) {
