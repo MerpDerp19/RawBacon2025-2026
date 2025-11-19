@@ -92,7 +92,7 @@ public class CatapultBotTeleOp extends OpMode {
     DcMotor backleft;
     DcMotor backright;
     DcMotor spinner;
-    DcMotor belt;
+    //DcMotor belt;
     Servo oscillator1;
     Servo oscillator2;
 
@@ -104,6 +104,8 @@ public class CatapultBotTeleOp extends OpMode {
     double OscPos2 = -1.0;
     double Target1 = 0;
     double Target2 = 0;
+    boolean finished1 = false;
+    boolean finished2 = false;
 
 
 
@@ -147,7 +149,7 @@ public class CatapultBotTeleOp extends OpMode {
         launchState = LaunchState.IDLE;
 
 
-        vision.init(hardwareMap);
+        //vision.init(hardwareMap);
 
         /*
          * Initialize the hardware variables. Note that the strings used here as parameters
@@ -156,14 +158,14 @@ public class CatapultBotTeleOp extends OpMode {
          */
 //        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
 //        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        frontleft = hardwareMap.get(DcMotor.class, "frontleft");
-        frontright = hardwareMap.get(DcMotor.class, "frontright");
-        backleft = hardwareMap.get(DcMotor.class, "backleft");
-        backright = hardwareMap.get(DcMotor.class, "backright");
-        spinner = hardwareMap.get(DcMotor.class, "spinner");
-        belt = hardwareMap.get(DcMotor.class, "belt");
+//        frontleft = hardwareMap.get(DcMotor.class, "frontleft");
+//        frontright = hardwareMap.get(DcMotor.class, "frontright");
+//        backleft = hardwareMap.get(DcMotor.class, "backleft");
+//        backright = hardwareMap.get(DcMotor.class, "backright");
+        //spinner = hardwareMap.get(DcMotor.class, "spinner");
+        //belt = hardwareMap.get(DcMotor.class, "belt");
         oscillator1 = hardwareMap.get(Servo.class, "oscillator1");
-        oscillator2 = hardwareMap.get(Servo.class, "oscillator2");
+        //oscillator2 = hardwareMap.get(Servo.class, "oscillator2");
 
 
         /*
@@ -194,8 +196,8 @@ public class CatapultBotTeleOp extends OpMode {
 //        rightDrive.setZeroPowerBehavior(BRAKE);
 
 
-        backright.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontright.setDirection(DcMotorSimple.Direction.REVERSE);
+//        backright.setDirection(DcMotorSimple.Direction.REVERSE);
+//        frontright.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
 
@@ -216,8 +218,8 @@ public class CatapultBotTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        oscillator1.setPosition(-1);
-        oscillator2.setPosition(-1);
+        oscillator1.setPosition(-1.0);
+        //oscillator2.setPosition(-1.0);
     }
 
     /*
@@ -225,48 +227,34 @@ public class CatapultBotTeleOp extends OpMode {
      */
     @Override
     public void start() {
-        if (spinner.getCurrentPosition() >= SpinnerTarget) {
-            SpinnerTarget += 1460;
-        } else if (gamepad1.a) {
+//        if (spinner.getCurrentPosition() >= SpinnerTarget) {
+//            SpinnerTarget += 1460;
+//        } else if (gamepad1.a) {
+//
+//            spinner.setPower(0.5);
+//            spinner.setTargetPosition(SpinnerTarget);
+//            spinner.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//
+//        }
+//        if (gamepad1.b) {
+//            belt.setPower(0.5);
+//        } else {
+//            belt.setPower(0);
+//        }
 
-            spinner.setPower(0.5);
-            spinner.setTargetPosition(SpinnerTarget);
-            spinner.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        }
-        if (gamepad1.b) {
-            belt.setPower(0.5);
-        } else {
-            belt.setPower(0);
-        }
-        if (gamepad1.left_trigger == 1){
-
-            OscPos1 += Target1 / 10;
-            oscillator1.setPosition(OscPos1);
-            if (OscPos1 > Target1 && Target1 == 1){
-                Target1 = -1;
-            } else if (OscPos1 < Target1 && Target1 == -1){
-                Target1 = 0;
-            }
-
-        } else {
-            OscPos1 = -1;
-            oscillator1.setPosition(-1);
-            Target1 = 0;
-        }
-        if (gamepad1.right_trigger == 1){
-            OscPos2 += Target2 / 10;
-            oscillator2.setPosition(OscPos2);
-            if (OscPos2 > Target2 && Target2 == 1){
-                Target2 = -1;
-            } else if (OscPos2 < Target2 && Target2 == -1) {
-                Target2 = 0;
-            }
-        } else {
-            OscPos2 = -1;
-            oscillator2.setPosition(-1);
-            Target2 = 0;
-        }
+//        if (gamepad1.right_trigger == 1){
+//            OscPos2 += Target2 / 10;
+//            oscillator2.setPosition(OscPos2);
+//            if (OscPos2 > Target2 && Target2 == 0){
+//                Target2 = -1;
+//            } else if (OscPos2 < Target2 && Target2 == -1) {
+//                Target2 = 0;
+//            }
+//        } else {
+//            OscPos2 = -1;
+//            oscillator2.setPosition(-1);
+//            Target2 = 0;
+//        }
     }
 
 
@@ -289,25 +277,37 @@ public class CatapultBotTeleOp extends OpMode {
          * both motors work to rotate the robot. Combinations of these inputs can be used to create
          * more complex maneuvers.
          */
+
+        if (gamepad1.left_trigger == 1){
+
+            oscillator1.setPosition(Target1);
+
+
+        } else {
+            OscPos1 = -1;
+            oscillator1.setPosition(-1.0);
+            Target1 = 0;
+        }
+
         //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         //april tag vision
-        List<AprilTagDetection> detections = vision.getDetections();
-        if (!detections.isEmpty()) {
-            AprilTagDetection tag = detections.get(0);
-            telemetry.addData("Tag ID", tag.id);
-            if (tag.ftcPose != null) {
-                telemetry.addData("x", tag.ftcPose.x);
-                telemetry.addData("y", tag.ftcPose.y);
-                telemetry.addData("z", tag.ftcPose.z);
-            }
-        } else {
-            telemetry.addLine("No tags detected");
-        }
-        telemetry.update();
-
-
-        vision.close();
+//        List<AprilTagDetection> detections = vision.getDetections();
+//        if (!detections.isEmpty()) {
+//            AprilTagDetection tag = detections.get(0);
+//            telemetry.addData("Tag ID", tag.id);
+//            if (tag.ftcPose != null) {
+//                telemetry.addData("x", tag.ftcPose.x);
+//                telemetry.addData("y", tag.ftcPose.y);
+//                telemetry.addData("z", tag.ftcPose.z);
+//            }
+//        } else {
+//            telemetry.addLine("No tags detected");
+//        }
+//        telemetry.update();
+//
+//
+//        vision.close();
 
 
 
@@ -336,6 +336,7 @@ public class CatapultBotTeleOp extends OpMode {
         telemetry.addData("State", launchState);
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.addData("Launch State", launchState);
+        telemetry.addData("Osc 1", OscPos1);
 
     }
 
@@ -371,10 +372,10 @@ public class CatapultBotTeleOp extends OpMode {
         double RightStickX = -gamepad1.right_stick_x;
 
 
-        frontright.setPower((-RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
-        backright.setPower((-RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
-        frontleft.setPower((RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
-        backleft.setPower((RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
+//        frontright.setPower((-RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
+//        backright.setPower((-RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
+//        frontleft.setPower((RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
+//        backleft.setPower((RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
 
 
     }}
