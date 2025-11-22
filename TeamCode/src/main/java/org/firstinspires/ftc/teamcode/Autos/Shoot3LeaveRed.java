@@ -139,20 +139,8 @@ public class Shoot3LeaveRed extends LinearOpMode {
 
         //sleep(30000);
 
-        frontleft.setPower(-0.5);
-        frontright.setPower(-0.5);
-        backleft.setPower(-0.5);
-        backright.setPower(-0.5);
-        sleep(1000);
-        frontleft.setPower(-0.5);
-        frontright.setPower(0.5);
-        backleft.setPower(0.5);
-        backright.setPower(-0.5);
-        sleep(2000);
-        frontleft.setPower(0);
-        frontright.setPower(0);
-        backleft.setPower(0);
-        backright.setPower(0);
+        goToPosition(-10 * COUNTS_PER_INCH,-20 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
+
 
         sleep(30000);
 
