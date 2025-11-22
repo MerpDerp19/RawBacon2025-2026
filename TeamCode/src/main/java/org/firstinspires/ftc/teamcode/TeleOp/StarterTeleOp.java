@@ -266,9 +266,11 @@ public class StarterTeleOp extends OpMode {
         if (gamepad1.left_bumper){
             omniwheelDrive(0.3);
         }
-        else {
-            omniwheelDrive(0.75);
+        else if (gamepad1.right_bumper){
+            omniwheelDrive(1);
         }
+        else omniwheelDrive(0.75);
+
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically

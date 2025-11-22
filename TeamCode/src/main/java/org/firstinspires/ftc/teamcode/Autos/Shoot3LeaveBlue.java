@@ -139,7 +139,7 @@ public class Shoot3LeaveBlue extends LinearOpMode {
 
         //sleep(30000);
 
-        goToPosition(10 * COUNTS_PER_INCH,-20 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
+        goToPosition(18 * COUNTS_PER_INCH,-20 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
 
         sleep(30000);
 
