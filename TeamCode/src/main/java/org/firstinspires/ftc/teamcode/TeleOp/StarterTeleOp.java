@@ -128,7 +128,7 @@ public class StarterTeleOp extends OpMode {
     double leftPower;
     double rightPower;
 
-    private AprilTagVision vision = new AprilTagVision();
+    //private AprilTagVision vision = new AprilTagVision();
 
 
     /*
@@ -139,7 +139,7 @@ public class StarterTeleOp extends OpMode {
         launchState = LaunchState.IDLE;
 
 
-        vision.init(hardwareMap);
+        //vision.init(hardwareMap);
 
         /*
          * Initialize the hardware variables. Note that the strings used here as parameters
@@ -243,18 +243,18 @@ public class StarterTeleOp extends OpMode {
         //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         //april tag vision
-        List<AprilTagDetection> detections = vision.getDetections();
-        if (!detections.isEmpty()) {
-            AprilTagDetection tag = detections.get(0);
-            telemetry.addData("Tag ID", tag.id);
-            if (tag.ftcPose != null) {
-                telemetry.addData("x", tag.ftcPose.x);
-                telemetry.addData("y", tag.ftcPose.y);
-                telemetry.addData("z", tag.ftcPose.z);
-            }
-        } else {
-            telemetry.addLine("No tags detected");
-        }
+//        List<AprilTagDetection> detections = vision.getDetections();
+//        if (!detections.isEmpty()) {
+//            AprilTagDetection tag = detections.get(0);
+//            telemetry.addData("Tag ID", tag.id);
+//            if (tag.ftcPose != null) {
+//                telemetry.addData("x", tag.ftcPose.x);
+//                telemetry.addData("y", tag.ftcPose.y);
+//                telemetry.addData("z", tag.ftcPose.z);
+//            }
+//        } else {
+//            telemetry.addLine("No tags detected");
+//        }
 
 
 
@@ -315,7 +315,7 @@ public class StarterTeleOp extends OpMode {
      */
     @Override
     public void stop() {
-        vision.close();
+        //vision.close();
     }
 
     void arcadeDrive(double forward, double rotate) {
