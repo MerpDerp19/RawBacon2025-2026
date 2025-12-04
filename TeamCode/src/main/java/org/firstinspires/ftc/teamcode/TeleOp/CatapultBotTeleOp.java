@@ -87,25 +87,25 @@ public class CatapultBotTeleOp extends OpMode {
     // Declare OpMode members.
 //    private DcMotor leftDrive = null;
 //    private DcMotor rightDrive = null;
-    DcMotor frontleft;
-    DcMotor frontright;
-    DcMotor backleft;
-    DcMotor backright;
-    DcMotor spinner;
-    //DcMotor belt;
+//    DcMotor frontleft;
+//    DcMotor frontright;
+//    DcMotor backleft;
+//    DcMotor backright;
+    //DcMotor spinner;
+    DcMotor belt;
     Servo oscillator1;
     Servo oscillator2;
+    CRServo rightintake;
+    CRServo leftintake;
 
     ElapsedTime feederTimer = new ElapsedTime();
 
     ElapsedTime launcherTimer = new ElapsedTime();
     int SpinnerTarget = 0;
-    double OscPos1 = -1.0;
-    double OscPos2 = -1.0;
-    double Target1 = 0;
-    double Target2 = 0;
-    boolean finished1 = false;
-    boolean finished2 = false;
+    int counter1 = 0;
+    int counter2 = 0;
+    boolean started1 = false;
+    boolean started2 = false;
 
 
 
@@ -138,7 +138,7 @@ public class CatapultBotTeleOp extends OpMode {
     double leftPower;
     double rightPower;
 
-    private AprilTagVision vision = new AprilTagVision();
+    //private AprilTagVision vision = new AprilTagVision();
 
 
     /*
@@ -163,9 +163,11 @@ public class CatapultBotTeleOp extends OpMode {
 //        backleft = hardwareMap.get(DcMotor.class, "backleft");
 //        backright = hardwareMap.get(DcMotor.class, "backright");
         //spinner = hardwareMap.get(DcMotor.class, "spinner");
-        //belt = hardwareMap.get(DcMotor.class, "belt");
+        belt = hardwareMap.get(DcMotor.class, "belt");
         oscillator1 = hardwareMap.get(Servo.class, "oscillator1");
-        //oscillator2 = hardwareMap.get(Servo.class, "oscillator2");
+        oscillator2 = hardwareMap.get(Servo.class, "oscillator2");
+        rightintake = hardwareMap.get(CRServo.class, "rightintake");
+        leftintake = hardwareMap.get(CRServo.class, "leftintake");
 
 
         /*
@@ -218,8 +220,8 @@ public class CatapultBotTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        oscillator1.setPosition(-1.0);
-        //oscillator2.setPosition(-1.0);
+        oscillator1.setPosition(0.45);
+        oscillator2.setPosition(0.2);
     }
 
     /*
@@ -227,34 +229,7 @@ public class CatapultBotTeleOp extends OpMode {
      */
     @Override
     public void start() {
-//        if (spinner.getCurrentPosition() >= SpinnerTarget) {
-//            SpinnerTarget += 1460;
-//        } else if (gamepad1.a) {
-//
-//            spinner.setPower(0.5);
-//            spinner.setTargetPosition(SpinnerTarget);
-//            spinner.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//
-//        }
-//        if (gamepad1.b) {
-//            belt.setPower(0.5);
-//        } else {
-//            belt.setPower(0);
-//        }
 
-//        if (gamepad1.right_trigger == 1){
-//            OscPos2 += Target2 / 10;
-//            oscillator2.setPosition(OscPos2);
-//            if (OscPos2 > Target2 && Target2 == 0){
-//                Target2 = -1;
-//            } else if (OscPos2 < Target2 && Target2 == -1) {
-//                Target2 = 0;
-//            }
-//        } else {
-//            OscPos2 = -1;
-//            oscillator2.setPosition(-1);
-//            Target2 = 0;
-//        }
     }
 
 
@@ -277,19 +252,69 @@ public class CatapultBotTeleOp extends OpMode {
          * both motors work to rotate the robot. Combinations of these inputs can be used to create
          * more complex maneuvers.
          */
+        //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-        if (gamepad1.left_trigger == 1){
-
-            oscillator1.setPosition(Target1);
-
-
+//        if (spinner.getCurrentPosition() >= SpinnerTarget) {
+//            SpinnerTarget += 1460;
+//        } else if (gamepad1.a) {
+//
+//            spinner.setPower(0.5);
+//            spinner.setTargetPosition(SpinnerTarget);
+//            spinner.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//
+//        }
+        if (gamepad1.b) {
+            belt.setPower(0.8);
         } else {
-            OscPos1 = -1;
-            oscillator1.setPosition(-1.0);
-            Target1 = 0;
+            belt.setPower(0);
+        }
+        if (gamepad1.left_trigger == 1) {
+            rightintake.setPower(-0.8);
+            leftintake.setPower(0.8);
+        } else {
+            rightintake.setPower(0);
+            leftintake.setPower(0);
         }
 
-        //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+
+
+        if (started1){
+
+            counter1 += 1;
+
+            if (counter1 > 400){
+                oscillator1.setPosition(0.45);
+                started1 = false;
+                counter1 = 0;
+            } else {
+                oscillator1.setPosition(0.1);
+            }
+
+        } else {
+            oscillator1.setPosition(0.45);
+            counter1 = 0;
+        }
+        if (gamepad1.right_trigger == 1 && !started2){
+            started2 = true;
+        }
+        if (started2){
+            counter2 += 1;
+            if (counter2 > 450){
+                started1 = true;
+            }
+            if (counter2 > 900){
+                oscillator2.setPosition(0.2);
+                started2 = false;
+                counter2 = 0;
+            } else {
+                oscillator2.setPosition(0.5);
+            }
+
+        } else {
+            oscillator2.setPosition(0.2);
+            counter2 = 0;
+        }
 
         //april tag vision
 //        List<AprilTagDetection> detections = vision.getDetections();
@@ -336,7 +361,10 @@ public class CatapultBotTeleOp extends OpMode {
         telemetry.addData("State", launchState);
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.addData("Launch State", launchState);
-        telemetry.addData("Osc 1", OscPos1);
+        telemetry.addData("Counter1", counter1);
+        telemetry.addData("Counter2", counter2);
+        telemetry.addData("osc2pos", oscillator2.getPosition());
+        //telemetry.addData("osc1pos", oscillator1.getPosition());
 
     }
 
