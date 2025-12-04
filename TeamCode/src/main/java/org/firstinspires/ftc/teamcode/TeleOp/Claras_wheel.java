@@ -280,7 +280,7 @@ public class Claras_wheel extends OpMode {
         if (gamepad1.a){
 //            leftFeeder.setPower(1);
 //            rightFeeder.setPower(1);
-            launcher.setVelocity(50);
+            launcher.setVelocity(80);
 
         } else if (gamepad1.y) {
             launcher.setVelocity(0);

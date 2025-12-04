@@ -82,6 +82,9 @@ public class StarterTeleOpTag extends OpMode {
      */
     final double LAUNCHER_TARGET_VELOCITY = 1125;
     final double LAUNCHER_MIN_VELOCITY = 475;
+    double yawTarget = 0;
+    double xTarget = 0;
+    boolean yawReached = false;
 
     // Declare OpMode members.
 //    private DcMotor leftDrive = null;
@@ -295,36 +298,55 @@ public class StarterTeleOpTag extends OpMode {
         }
         if (gamepad1.x){
 
-            frontleft.setPower(0.1);
-            frontright.setPower(0.1);
-            backleft.setPower(0.1);
-            backright.setPower(0.1);
+            frontleft.setPower(0.3);
+            frontright.setPower(0.3);
+            backleft.setPower(0.3);
+            backright.setPower(0.3);
 
-        if (tag.ftcPose.yaw > 0) {
-            frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
-            frontright.setDirection(DcMotorSimple.Direction.FORWARD);
-            backleft.setDirection(DcMotorSimple.Direction.FORWARD);
-            backright.setDirection(DcMotorSimple.Direction.FORWARD);
+            if (!(Math.abs(tag.ftcPose.yaw - yawTarget) < 5)) {
+
+                if (tag.ftcPose.yaw > yawTarget || !yawReached) {
+                    frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
+                    frontright.setDirection(DcMotorSimple.Direction.FORWARD);
+                    backleft.setDirection(DcMotorSimple.Direction.FORWARD);
+                    backright.setDirection(DcMotorSimple.Direction.FORWARD);
+                } else {
+                    frontleft.setDirection(DcMotorSimple.Direction.REVERSE);
+                    frontright.setDirection(DcMotorSimple.Direction.REVERSE);
+                    backleft.setDirection(DcMotorSimple.Direction.REVERSE);
+                    backright.setDirection(DcMotorSimple.Direction.REVERSE);
+                }
+            } else {
+                yawReached = true;
+                if (tag.ftcPose.x < xTarget) {
+                    frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
+                    frontright.setDirection(DcMotorSimple.Direction.FORWARD);
+                    backleft.setDirection(DcMotorSimple.Direction.REVERSE);
+                    backright.setDirection(DcMotorSimple.Direction.REVERSE);
+                } else {
+                    frontleft.setDirection(DcMotorSimple.Direction.REVERSE);
+                    frontright.setDirection(DcMotorSimple.Direction.REVERSE);
+                    backleft.setDirection(DcMotorSimple.Direction.FORWARD);
+                    backright.setDirection(DcMotorSimple.Direction.FORWARD);
+                }
+            }
+
         } else {
-            frontleft.setDirection(DcMotorSimple.Direction.REVERSE);
-            frontright.setDirection(DcMotorSimple.Direction.REVERSE);
-            backleft.setDirection(DcMotorSimple.Direction.REVERSE);
-            backright.setDirection(DcMotorSimple.Direction.REVERSE);
+                frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
+                frontright.setDirection(DcMotorSimple.Direction.REVERSE);
+                backleft.setDirection(DcMotorSimple.Direction.FORWARD);
+                backright.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
-        } else {
-            frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
-            frontright.setDirection(DcMotorSimple.Direction.REVERSE);
-            backleft.setDirection(DcMotorSimple.Direction.FORWARD);
-            backright.setDirection(DcMotorSimple.Direction.REVERSE);
             if (gamepad1.left_stick_x == 0 && gamepad1.left_stick_y == 0 && gamepad1.right_stick_x == 0){
                 frontleft.setPower(0);
                 frontright.setPower(0);
                 backleft.setPower(0);
                 backright.setPower(0);
+                yawReached = false;
             }
 
-        }
+
 
 
         /*

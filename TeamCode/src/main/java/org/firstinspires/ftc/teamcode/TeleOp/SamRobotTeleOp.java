@@ -41,6 +41,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Utility.*;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -90,6 +91,7 @@ public class SamRobotTeleOp extends OpMode {
     DcMotor frontright;
     DcMotor backleft;
     DcMotor backright;
+    Servo gate;
 
 //    private DcMotorEx launcher = null;
 //    private CRServo leftFeeder = null;
@@ -128,7 +130,7 @@ public class SamRobotTeleOp extends OpMode {
     double leftPower;
     double rightPower;
 
-    private AprilTagVision vision = new AprilTagVision();
+    //private AprilTagVision vision = new AprilTagVision();
 
 
     /*
@@ -139,7 +141,7 @@ public class SamRobotTeleOp extends OpMode {
         launchState = LaunchState.IDLE;
 
 
-        vision.init(hardwareMap);
+        //vision.init(hardwareMap);
 
         /*
          * Initialize the hardware variables. Note that the strings used here as parameters
@@ -152,6 +154,8 @@ public class SamRobotTeleOp extends OpMode {
         frontright = hardwareMap.get(DcMotor.class, "frontright");
         backleft = hardwareMap.get(DcMotor.class, "backleft");
         backright = hardwareMap.get(DcMotor.class, "backright");
+        gate = hardwareMap.get(Servo.class, "gate");
+
 
 //        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
 //        leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
@@ -243,18 +247,18 @@ public class SamRobotTeleOp extends OpMode {
         //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         //april tag vision
-        List<AprilTagDetection> detections = vision.getDetections();
-        if (!detections.isEmpty()) {
-            AprilTagDetection tag = detections.get(0);
-            telemetry.addData("Tag ID", tag.id);
-            if (tag.ftcPose != null) {
-                telemetry.addData("x", tag.ftcPose.x);
-                telemetry.addData("y", tag.ftcPose.y);
-                telemetry.addData("z", tag.ftcPose.z);
-            }
-        } else {
-            telemetry.addLine("No tags detected");
-        }
+//        List<AprilTagDetection> detections = vision.getDetections();
+//        if (!detections.isEmpty()) {
+//            AprilTagDetection tag = detections.get(0);
+//            telemetry.addData("Tag ID", tag.id);
+//            if (tag.ftcPose != null) {
+//                telemetry.addData("x", tag.ftcPose.x);
+//                telemetry.addData("y", tag.ftcPose.y);
+//                telemetry.addData("z", tag.ftcPose.z);
+//            }
+//        } else {
+//            telemetry.addLine("No tags detected");
+//        }
 
 
 
@@ -282,18 +286,6 @@ public class SamRobotTeleOp extends OpMode {
 //
 //        }
 
-        if (gamepad1.a){
-//            leftFeeder.setPower(1);
-//            rightFeeder.setPower(1);
-
-
-        }
-//        if (gamepad1.x){
-//            leftFeeder.setPower(0);
-//            rightFeeder.setPower(0);
-//
-//        }
-
 
         /*
          * Now we call our "Launch" function.
@@ -315,7 +307,7 @@ public class SamRobotTeleOp extends OpMode {
      */
     @Override
     public void stop() {
-        vision.close();
+    //    vision.close();
     }
 
     void arcadeDrive(double forward, double rotate) {
