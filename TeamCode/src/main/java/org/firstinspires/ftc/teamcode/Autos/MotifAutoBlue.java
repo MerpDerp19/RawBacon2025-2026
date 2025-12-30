@@ -118,7 +118,7 @@ public class MotifAutoBlue extends LinearOpMode {
         //goToPosition(0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 0.5*COUNTS_PER_INCH);
 
         // V START WRITING YOUR AUTO HERE!!!! V
-
+        launcher.setVelocity(26);
         goToPosition(0 * COUNTS_PER_INCH, -55 * COUNTS_PER_INCH, 0.5, 45, 0.5 * COUNTS_PER_INCH);
 
         AprilTagDetection tag = null;
@@ -140,41 +140,50 @@ public class MotifAutoBlue extends LinearOpMode {
             telemetry.addLine("No tags detected");
             int motif = 0;
         }
-
+        telemetry.update();
         sleep(1000);
+        telemetry.update();
 
-        goToPosition(0 * COUNTS_PER_INCH, 0 * COUNTS_PER_INCH, 0.5, 0, 2 * COUNTS_PER_INCH);
+        goToPosition(0 * COUNTS_PER_INCH, 0 * COUNTS_PER_INCH, 0.5, -5, 2 * COUNTS_PER_INCH);
 
-        if (motif == 21) {
+        switch (motif) {
 
-            launcher.setPower(0.1);
-            sleep(2000);
+            case 21:
+                telemetry.update();
+            sleep(500);
             leftFeeder.setPower(-1);
             rightFeeder.setPower(1);
-            sleep(150);
+            sleep(990);
             leftFeeder.setPower(0);
             rightFeeder.setPower(0);
+            telemetry.addLine("Ran 21");
+            break;
 
-
-        } else if (motif == 23) {
-            launcher.setPower(0.1);
-            sleep(2000);
-            leftFeeder.setPower(-1);
-            rightFeeder.setPower(1);
-            sleep(150);
-            leftFeeder.setPower(0);
-            rightFeeder.setPower(0);
-            sleep(150);
-            leftFeeder.setPower(-1);
-            rightFeeder.setPower(1);
-            sleep(150);
-            leftFeeder.setPower(0);
-            rightFeeder.setPower(0);
-            launcher.setPower(0);
-
+            case 23:
+                sleep(500);
+                leftFeeder.setPower(-1);
+                rightFeeder.setPower(1);
+                sleep(990);
+                leftFeeder.setPower(0);
+                rightFeeder.setPower(0);
+                sleep(1500);
+                leftFeeder.setPower(-1);
+                rightFeeder.setPower(1);
+                sleep(150);
+                leftFeeder.setPower(0);
+                rightFeeder.setPower(0);
+                launcher.setPower(0);
+                telemetry.addLine("Ran 23");
+                break;
 
         }
-        sleep(3000);
+
+        //launcher.setPower(0.1);
+
+
+        telemetry.update();
+
+        sleep(1500);
         launcher.setVelocity(47);
         sleep(4000);
         leftFeeder.setPower(-1);
@@ -182,27 +191,27 @@ public class MotifAutoBlue extends LinearOpMode {
         sleep(150);
         leftFeeder.setPower(0);
         rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
         sleep(3000);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        launcher.setVelocity(50);
+        sleep(4500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
 
-        //sleep(30000);
 
 
 
