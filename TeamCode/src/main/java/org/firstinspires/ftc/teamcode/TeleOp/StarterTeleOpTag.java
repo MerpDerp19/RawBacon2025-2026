@@ -73,6 +73,10 @@ public class StarterTeleOpTag extends OpMode {
     final double LAUNCHER_TIME_SECONDS = 0;
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
+    final double ROTATE_CONSTANT = 1.0;
+    final double X_CONSTANT = 1.0;
+    final double Y_CONSTANT = 1.0;
+    final double TARGET_DISTANCE = 50;
 
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
@@ -124,8 +128,49 @@ public class StarterTeleOpTag extends OpMode {
         LAUNCH,
         LAUNCHING,
     }
+    boolean isOnBlueTeam = false;
+    private enum TagAlignState {
+        NO_TAG,
+        ROTATE,
+        X_POS,
+        Y_POS,
+        DONE,
+    }
+
 
     private LaunchState launchState;
+    private TagAlignState tagAlignState;
+    private void rotateByAmount(double z) {
+        /*
+        if (z > 0) {
+            frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
+            frontright.setDirection(DcMotorSimple.Direction.FORWARD);
+            backleft.setDirection(DcMotorSimple.Direction.FORWARD);
+            backright.setDirection(DcMotorSimple.Direction.FORWARD);
+        } else {
+            frontleft.setDirection(DcMotorSimple.Direction.REVERSE);
+            frontright.setDirection(DcMotorSimple.Direction.REVERSE);
+            backleft.setDirection(DcMotorSimple.Direction.REVERSE);
+            backright.setDirection(DcMotorSimple.Direction.REVERSE);
+        }
+        */
+        frontleft.setPower(z*ROTATE_CONSTANT * 1);
+        frontright.setPower(z*ROTATE_CONSTANT * -1);
+        backleft.setPower(z*ROTATE_CONSTANT * 1);
+        backright.setPower(z*ROTATE_CONSTANT * -1);
+    }
+    private void xByAmount(double x) {
+        frontleft.setPower(x*X_CONSTANT * 1);
+        frontright.setPower(x*X_CONSTANT * -1);
+        backleft.setPower(x*X_CONSTANT * -1);
+        backright.setPower(x*X_CONSTANT * 1);
+    }
+    private void yByAmount(double y) {
+        frontleft.setPower(y*Y_CONSTANT * 1);
+        frontright.setPower(y*Y_CONSTANT * 1);
+        backleft.setPower(y*Y_CONSTANT * 1);
+        backright.setPower(y*Y_CONSTANT * 1);
+    }
 
     // Setup a variable for each drive wheel to save power level for telemetry
     double leftPower;
@@ -140,7 +185,7 @@ public class StarterTeleOpTag extends OpMode {
     @Override
     public void init() {
         launchState = LaunchState.IDLE;
-
+        tagAlignState = TagAlignState.NO_TAG;
 
         vision.init(hardwareMap);
 
@@ -213,6 +258,8 @@ public class StarterTeleOpTag extends OpMode {
          * Tell the driver that initialization is complete.
          */
         telemetry.addData("Status", "Initialized");
+
+
     }
 
     /*
@@ -220,6 +267,12 @@ public class StarterTeleOpTag extends OpMode {
      */
     @Override
     public void init_loop() {
+        if (gamepad2.dpad_left) {
+            isOnBlueTeam=true;
+        }
+        if (gamepad2.dpad_right) {
+            isOnBlueTeam=false;
+        }
     }
 
     /*
@@ -296,55 +349,42 @@ public class StarterTeleOpTag extends OpMode {
 
 
         }
-        if (gamepad1.x){
-
-            frontleft.setPower(0.3);
-            frontright.setPower(0.3);
-            backleft.setPower(0.3);
-            backright.setPower(0.3);
-
-            if (!(Math.abs(tag.ftcPose.yaw - yawTarget) < 5)) {
-
-                if (tag.ftcPose.yaw > yawTarget || !yawReached) {
-                    frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
-                    frontright.setDirection(DcMotorSimple.Direction.FORWARD);
-                    backleft.setDirection(DcMotorSimple.Direction.FORWARD);
-                    backright.setDirection(DcMotorSimple.Direction.FORWARD);
-                } else {
-                    frontleft.setDirection(DcMotorSimple.Direction.REVERSE);
-                    frontright.setDirection(DcMotorSimple.Direction.REVERSE);
-                    backleft.setDirection(DcMotorSimple.Direction.REVERSE);
-                    backright.setDirection(DcMotorSimple.Direction.REVERSE);
-                }
-            } else {
-                yawReached = true;
-                if (tag.ftcPose.x < xTarget) {
-                    frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
-                    frontright.setDirection(DcMotorSimple.Direction.FORWARD);
-                    backleft.setDirection(DcMotorSimple.Direction.REVERSE);
-                    backright.setDirection(DcMotorSimple.Direction.REVERSE);
-                } else {
-                    frontleft.setDirection(DcMotorSimple.Direction.REVERSE);
-                    frontright.setDirection(DcMotorSimple.Direction.REVERSE);
-                    backleft.setDirection(DcMotorSimple.Direction.FORWARD);
-                    backright.setDirection(DcMotorSimple.Direction.FORWARD);
-                }
-            }
-
-        } else {
-                frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
-                frontright.setDirection(DcMotorSimple.Direction.REVERSE);
-                backleft.setDirection(DcMotorSimple.Direction.FORWARD);
-                backright.setDirection(DcMotorSimple.Direction.REVERSE);
+        if (gamepad2.dpad_left) {
+            isOnBlueTeam=true;
+        }
+        if (gamepad2.dpad_right) {
+            isOnBlueTeam=false;
         }
 
-            if (gamepad1.left_stick_x == 0 && gamepad1.left_stick_y == 0 && gamepad1.right_stick_x == 0){
-                frontleft.setPower(0);
-                frontright.setPower(0);
-                backleft.setPower(0);
-                backright.setPower(0);
-                yawReached = false;
+        if (gamepad1.x) {
+            switch (tagAlignState) {
+                case NO_TAG:
+                    if ((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam == true) {
+                        tagAlignState = TagAlignState.ROTATE;
+                    }
+                    break;
+                case ROTATE:
+                    rotateByAmount(tag.ftcPose.yaw);
+                    if (Math.abs(tag.ftcPose.yaw) < 5) {tagAlignState = TagAlignState.X_POS;}
+                    break;
+                case X_POS:
+                    xByAmount(tag.ftcPose.x);
+                    if (Math.abs(tag.ftcPose.x) < 5) {tagAlignState = TagAlignState.Y_POS;}
+                    if (Math.abs(tag.ftcPose.yaw) > 5) {tagAlignState = TagAlignState.ROTATE;}
+                    break;
+                case Y_POS:
+                    yByAmount(tag.ftcPose.y);
+                    if (Math.abs(tag.ftcPose.y - TARGET_DISTANCE) < 5) {tagAlignState = TagAlignState.DONE;}
+                    if (Math.abs(tag.ftcPose.x) > 5) {tagAlignState = TagAlignState.X_POS;}
+                    if (Math.abs(tag.ftcPose.yaw) > 5) {tagAlignState = TagAlignState.ROTATE;}
+                    break;
+                case DONE:
+
+                    break;
             }
+        } else {
+            tagAlignState = TagAlignState.NO_TAG;
+        }
 
 
 
