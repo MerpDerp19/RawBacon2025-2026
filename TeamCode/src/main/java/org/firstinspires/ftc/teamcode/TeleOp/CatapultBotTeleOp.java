@@ -41,6 +41,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Utility.*;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -66,9 +67,9 @@ import java.util.List;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "StarterBotTeleop", group = "StarterBot")
+@TeleOp(name = "CatapultBotTeleOp")
 //@Disabled
-public class StarterTeleOp extends OpMode {
+public class CatapultBotTeleOp extends OpMode {
     final double FEED_TIME_SECONDS = 0.15; //The feeder servos run this long when a shot is requested.
     final double LAUNCHER_TIME_SECONDS = 0;
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
@@ -86,18 +87,27 @@ public class StarterTeleOp extends OpMode {
     // Declare OpMode members.
 //    private DcMotor leftDrive = null;
 //    private DcMotor rightDrive = null;
-    DcMotor frontleft;
-    DcMotor frontright;
-    DcMotor backleft;
-    DcMotor backright;
-
-    private DcMotorEx launcher = null;
-    private CRServo leftFeeder = null;
-    private CRServo rightFeeder = null;
+//    DcMotor frontleft;
+//    DcMotor frontright;
+//    DcMotor backleft;
+//    DcMotor backright;
+    //DcMotor spinner;
+    DcMotor belt;
+    Servo oscillator1;
+    Servo oscillator2;
+    CRServo rightintake;
+    CRServo leftintake;
 
     ElapsedTime feederTimer = new ElapsedTime();
 
     ElapsedTime launcherTimer = new ElapsedTime();
+    int SpinnerTarget = 0;
+    int counter1 = 0;
+    int counter2 = 0;
+    boolean started1 = false;
+    boolean started2 = false;
+
+
 
     /*
      * TECH TIP: State Machines
@@ -148,14 +158,17 @@ public class StarterTeleOp extends OpMode {
          */
 //        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
 //        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        frontleft = hardwareMap.get(DcMotor.class, "frontleft");
-        frontright = hardwareMap.get(DcMotor.class, "frontright");
-        backleft = hardwareMap.get(DcMotor.class, "backleft");
-        backright = hardwareMap.get(DcMotor.class, "backright");
+//        frontleft = hardwareMap.get(DcMotor.class, "frontleft");
+//        frontright = hardwareMap.get(DcMotor.class, "frontright");
+//        backleft = hardwareMap.get(DcMotor.class, "backleft");
+//        backright = hardwareMap.get(DcMotor.class, "backright");
+        //spinner = hardwareMap.get(DcMotor.class, "spinner");
+        belt = hardwareMap.get(DcMotor.class, "belt");
+        oscillator1 = hardwareMap.get(Servo.class, "oscillator1");
+        oscillator2 = hardwareMap.get(Servo.class, "oscillator2");
+        rightintake = hardwareMap.get(CRServo.class, "rightintake");
+        leftintake = hardwareMap.get(CRServo.class, "leftintake");
 
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-        leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
-        rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -183,19 +196,10 @@ public class StarterTeleOp extends OpMode {
          */
 //        leftDrive.setZeroPowerBehavior(BRAKE);
 //        rightDrive.setZeroPowerBehavior(BRAKE);
-        launcher.setZeroPowerBehavior(BRAKE);
 
-        /*
-         * set Feeders to an initial value to initialize the servo controller
-         */
-        leftFeeder.setPower(STOP_SPEED);
-        rightFeeder.setPower(STOP_SPEED);
 
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
-        launcher.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        backright.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontright.setDirection(DcMotorSimple.Direction.REVERSE);
+//        backright.setDirection(DcMotorSimple.Direction.REVERSE);
+//        frontright.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
 
@@ -204,7 +208,6 @@ public class StarterTeleOp extends OpMode {
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
          * both work to feed the ball into the robot.
          */
-        leftFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
 
         /*
          * Tell the driver that initialization is complete.
@@ -217,6 +220,8 @@ public class StarterTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
+        oscillator1.setPosition(0.45);
+        oscillator2.setPosition(0.2);
     }
 
     /*
@@ -224,11 +229,18 @@ public class StarterTeleOp extends OpMode {
      */
     @Override
     public void start() {
+
     }
+
+
+
 
     /*
      * Code to run REPEATEDLY after the driver hits START but before they hit STOP
      */
+
+
+
     @Override
     public void loop() {
         /*
@@ -241,6 +253,68 @@ public class StarterTeleOp extends OpMode {
          * more complex maneuvers.
          */
         //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+//        if (spinner.getCurrentPosition() >= SpinnerTarget) {
+//            SpinnerTarget += 1460;
+//        } else if (gamepad1.a) {
+//
+//            spinner.setPower(0.5);
+//            spinner.setTargetPosition(SpinnerTarget);
+//            spinner.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//
+//        }
+        if (gamepad1.b) {
+            belt.setPower(0.8);
+        } else {
+            belt.setPower(0);
+        }
+        if (gamepad1.left_trigger == 1) {
+            rightintake.setPower(-0.8);
+            leftintake.setPower(0.8);
+        } else {
+            rightintake.setPower(0);
+            leftintake.setPower(0);
+        }
+
+
+
+
+        if (started1){
+
+            counter1 += 1;
+
+            if (counter1 > 400){
+                oscillator1.setPosition(0.45);
+                started1 = false;
+                counter1 = 0;
+            } else {
+                oscillator1.setPosition(0.1);
+            }
+
+        } else {
+            oscillator1.setPosition(0.45);
+            counter1 = 0;
+        }
+        if (gamepad1.right_trigger == 1 && !started2){
+            started2 = true;
+        }
+        if (started2){
+            counter2 += 1;
+            if (counter2 > 450){
+                started1 = true;
+            }
+            if (counter2 > 900){
+                oscillator2.setPosition(0.2);
+                started2 = false;
+                counter2 = 0;
+            } else {
+                oscillator2.setPosition(0.5);
+            }
+
+        } else {
+            oscillator2.setPosition(0.2);
+            counter2 = 0;
+        }
 
         //april tag vision
 //        List<AprilTagDetection> detections = vision.getDetections();
@@ -255,60 +329,42 @@ public class StarterTeleOp extends OpMode {
 //        } else {
 //            telemetry.addLine("No tags detected");
 //        }
+//        telemetry.update();
+//
+//
+//        vision.close();
 
 
 
-
-
-
-
-    //sets drivetrain
+        //sets drivetrain
         if (gamepad1.left_bumper){
             omniwheelDrive(0.3);
         }
-        else if (gamepad1.right_bumper){
-            omniwheelDrive(1);
+        else {
+            omniwheelDrive(0.75);
         }
-        else omniwheelDrive(0.75);
-
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
          */
-        if (gamepad2.y) {
-            launcher.setVelocity(50);
-            //launcher.setPower(0.2);
-        } else if (gamepad2.b) { // stop flywheel
-            launcher.setVelocity(STOP_SPEED);
 
-        }
-
-        if (gamepad1.a){
-//            leftFeeder.setPower(1);
-//            rightFeeder.setPower(1);
-
-
-        }
-        if (gamepad1.x){
-            leftFeeder.setPower(0);
-            rightFeeder.setPower(0);
-
-        }
 
 
         /*
          * Now we call our "Launch" function.
          */
-        launch(gamepad2.rightBumperWasPressed());
 
         /*
          * Show the state and motor powers
          */
         telemetry.addData("State", launchState);
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("motorSpeed", launcher.getVelocity());
         telemetry.addData("Launch State", launchState);
+        telemetry.addData("Counter1", counter1);
+        telemetry.addData("Counter2", counter2);
+        telemetry.addData("osc2pos", oscillator2.getPosition());
+        //telemetry.addData("osc1pos", oscillator1.getPosition());
 
     }
 
@@ -317,7 +373,6 @@ public class StarterTeleOp extends OpMode {
      */
     @Override
     public void stop() {
-        //vision.close();
     }
 
     void arcadeDrive(double forward, double rotate) {
@@ -338,57 +393,20 @@ public class StarterTeleOp extends OpMode {
         }
     }
 
-    void omniwheelDrive(double speed){
+    void omniwheelDrive(double speed) {
         double Pad2RightStickY = -gamepad2.right_stick_y;
         double LeftStickY = gamepad1.left_stick_y;
         double LeftStickX = -gamepad1.left_stick_x;
         double RightStickX = -gamepad1.right_stick_x;
 
 
-        frontright.setPower((-RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
-        backright.setPower((-RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
-        frontleft.setPower((RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
-        backleft.setPower((RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
+//        frontright.setPower((-RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
+//        backright.setPower((-RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
+//        frontleft.setPower((RightStickX / 1.5 + (LeftStickY + LeftStickX)) * speed);
+//        backleft.setPower((RightStickX / 1.5 + (LeftStickY - LeftStickX)) * speed);
 
 
-    }
+    }}
 
 
 
-    void launch(boolean shotRequested) {
-        switch (launchState) {
-            case IDLE:
-                if (shotRequested) {
-                    launchState = LaunchState.SPIN_UP;
-                    launcherTimer.reset();
-                }
-                break;
-            case SPIN_UP:
-                //launcher.setVelocity(45);
-                //launcher.setPower(1);
-                //if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
-                //    launchState = LaunchState.LAUNCH;
-                //}
-                if (launcherTimer.seconds() > LAUNCHER_TIME_SECONDS) {
-                    launchState = LaunchState.LAUNCH;
-                }
-                break;
-            case LAUNCH:
-                leftFeeder.setPower(FULL_SPEED);
-                rightFeeder.setPower(FULL_SPEED);
-                feederTimer.reset();
-                launchState = LaunchState.LAUNCHING;
-                break;
-            case LAUNCHING:
-                if (feederTimer.seconds() > FEED_TIME_SECONDS) {
-                    launchState = LaunchState.IDLE;
-                    leftFeeder.setPower(STOP_SPEED);
-                    rightFeeder.setPower(STOP_SPEED);
-                    //launcher.setVelocity(0);
-                   // launcher.setPower(0);
-                }
-                break;
-
-        }
-    }
-}

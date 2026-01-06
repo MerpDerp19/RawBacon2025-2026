@@ -41,6 +41,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Utility.*;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -68,7 +69,7 @@ import java.util.List;
 
 @TeleOp(name = "StarterBotTeleop", group = "StarterBot")
 //@Disabled
-public class StarterTeleOp extends OpMode {
+public class SamRobotTeleOp extends OpMode {
     final double FEED_TIME_SECONDS = 0.15; //The feeder servos run this long when a shot is requested.
     final double LAUNCHER_TIME_SECONDS = 0;
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
@@ -90,10 +91,11 @@ public class StarterTeleOp extends OpMode {
     DcMotor frontright;
     DcMotor backleft;
     DcMotor backright;
+    Servo gate;
 
-    private DcMotorEx launcher = null;
-    private CRServo leftFeeder = null;
-    private CRServo rightFeeder = null;
+//    private DcMotorEx launcher = null;
+//    private CRServo leftFeeder = null;
+//    private CRServo rightFeeder = null;
 
     ElapsedTime feederTimer = new ElapsedTime();
 
@@ -152,10 +154,12 @@ public class StarterTeleOp extends OpMode {
         frontright = hardwareMap.get(DcMotor.class, "frontright");
         backleft = hardwareMap.get(DcMotor.class, "backleft");
         backright = hardwareMap.get(DcMotor.class, "backright");
+        gate = hardwareMap.get(Servo.class, "gate");
 
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-        leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
-        rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
+
+//        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+//        leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
+//        rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -183,16 +187,16 @@ public class StarterTeleOp extends OpMode {
          */
 //        leftDrive.setZeroPowerBehavior(BRAKE);
 //        rightDrive.setZeroPowerBehavior(BRAKE);
-        launcher.setZeroPowerBehavior(BRAKE);
-
-        /*
-         * set Feeders to an initial value to initialize the servo controller
-         */
-        leftFeeder.setPower(STOP_SPEED);
-        rightFeeder.setPower(STOP_SPEED);
-
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
-        launcher.setDirection(DcMotorSimple.Direction.FORWARD);
+//        launcher.setZeroPowerBehavior(BRAKE);
+//
+//        /*
+//         * set Feeders to an initial value to initialize the servo controller
+//         */
+//        leftFeeder.setPower(STOP_SPEED);
+//        rightFeeder.setPower(STOP_SPEED);
+//
+//        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
+//        launcher.setDirection(DcMotorSimple.Direction.FORWARD);
 
         backright.setDirection(DcMotorSimple.Direction.REVERSE);
         frontright.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -204,7 +208,7 @@ public class StarterTeleOp extends OpMode {
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
          * both work to feed the ball into the robot.
          */
-        leftFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
+//        leftFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
 
         /*
          * Tell the driver that initialization is complete.
@@ -262,52 +266,38 @@ public class StarterTeleOp extends OpMode {
 
 
 
-    //sets drivetrain
+        //sets drivetrain
         if (gamepad1.left_bumper){
             omniwheelDrive(0.3);
         }
-        else if (gamepad1.right_bumper){
-            omniwheelDrive(1);
+        else {
+            omniwheelDrive(0.75);
         }
-        else omniwheelDrive(0.75);
-
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
          */
-        if (gamepad2.y) {
-            launcher.setVelocity(50);
-            //launcher.setPower(0.2);
-        } else if (gamepad2.b) { // stop flywheel
-            launcher.setVelocity(STOP_SPEED);
-
-        }
-
-        if (gamepad1.a){
-//            leftFeeder.setPower(1);
-//            rightFeeder.setPower(1);
-
-
-        }
-        if (gamepad1.x){
-            leftFeeder.setPower(0);
-            rightFeeder.setPower(0);
-
-        }
+//        if (gamepad2.y) {
+//            launcher.setVelocity(50);
+//            //launcher.setPower(0.2);
+//        } else if (gamepad2.b) { // stop flywheel
+//            launcher.setVelocity(STOP_SPEED);
+//
+//        }
 
 
         /*
          * Now we call our "Launch" function.
          */
-        launch(gamepad2.rightBumperWasPressed());
+        //launch(gamepad2.rightBumperWasPressed());
 
         /*
          * Show the state and motor powers
          */
         telemetry.addData("State", launchState);
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("motorSpeed", launcher.getVelocity());
+//        telemetry.addData("motorSpeed", launcher.getVelocity());
         telemetry.addData("Launch State", launchState);
 
     }
@@ -317,7 +307,7 @@ public class StarterTeleOp extends OpMode {
      */
     @Override
     public void stop() {
-        //vision.close();
+    //    vision.close();
     }
 
     void arcadeDrive(double forward, double rotate) {
@@ -355,40 +345,40 @@ public class StarterTeleOp extends OpMode {
 
 
 
-    void launch(boolean shotRequested) {
-        switch (launchState) {
-            case IDLE:
-                if (shotRequested) {
-                    launchState = LaunchState.SPIN_UP;
-                    launcherTimer.reset();
-                }
-                break;
-            case SPIN_UP:
-                //launcher.setVelocity(45);
-                //launcher.setPower(1);
-                //if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
-                //    launchState = LaunchState.LAUNCH;
-                //}
-                if (launcherTimer.seconds() > LAUNCHER_TIME_SECONDS) {
-                    launchState = LaunchState.LAUNCH;
-                }
-                break;
-            case LAUNCH:
-                leftFeeder.setPower(FULL_SPEED);
-                rightFeeder.setPower(FULL_SPEED);
-                feederTimer.reset();
-                launchState = LaunchState.LAUNCHING;
-                break;
-            case LAUNCHING:
-                if (feederTimer.seconds() > FEED_TIME_SECONDS) {
-                    launchState = LaunchState.IDLE;
-                    leftFeeder.setPower(STOP_SPEED);
-                    rightFeeder.setPower(STOP_SPEED);
-                    //launcher.setVelocity(0);
-                   // launcher.setPower(0);
-                }
-                break;
-
-        }
-    }
+//    void launch(boolean shotRequested) {
+//        switch (launchState) {
+//            case IDLE:
+//                if (shotRequested) {
+//                    launchState = LaunchState.SPIN_UP;
+//                    launcherTimer.reset();
+//                }
+//                break;
+//            case SPIN_UP:
+//                //launcher.setVelocity(45);
+//                //launcher.setPower(1);
+//                //if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
+//                //    launchState = LaunchState.LAUNCH;
+//                //}
+//                if (launcherTimer.seconds() > LAUNCHER_TIME_SECONDS) {
+//                    launchState = LaunchState.LAUNCH;
+//                }
+//                break;
+//            case LAUNCH:
+//                leftFeeder.setPower(FULL_SPEED);
+//                rightFeeder.setPower(FULL_SPEED);
+//                feederTimer.reset();
+//                launchState = LaunchState.LAUNCHING;
+//                break;
+//            case LAUNCHING:
+//                if (feederTimer.seconds() > FEED_TIME_SECONDS) {
+//                    launchState = LaunchState.IDLE;
+//                    leftFeeder.setPower(STOP_SPEED);
+//                    rightFeeder.setPower(STOP_SPEED);
+//                    //launcher.setVelocity(0);
+//                    // launcher.setPower(0);
+//                }
+//                break;
+//
+ //        }
+ //   }
 }
