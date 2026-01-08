@@ -73,10 +73,12 @@ public class StarterTeleOpTag extends OpMode {
     final double LAUNCHER_TIME_SECONDS = 0;
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
-    final double ROTATE_CONSTANT = 1.0;
-    final double X_CONSTANT = 1.0;
-    final double Y_CONSTANT = 1.0;
-    final double TARGET_DISTANCE = 50;
+    final double ROTATE_CONSTANT = 0.016;
+    final double X_CONSTANT = -0.1;
+    final double Y_CONSTANT = -0.1;
+    double ROT_OFFSET = 8;
+    final double X_OFFSET = 5;
+    final double Y_OFFSET = 50;
 
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
@@ -88,7 +90,8 @@ public class StarterTeleOpTag extends OpMode {
     final double LAUNCHER_MIN_VELOCITY = 475;
     double yawTarget = 0;
     double xTarget = 0;
-    boolean yawReached = false;
+    boolean tagSpotted = false;
+
 
     // Declare OpMode members.
 //    private DcMotor leftDrive = null;
@@ -309,10 +312,12 @@ public class StarterTeleOpTag extends OpMode {
                 telemetry.addData("y", tag.ftcPose.y);
                 telemetry.addData("z", tag.ftcPose.z);
                 telemetry.addData("yaw ", tag.ftcPose.yaw);
+                tagSpotted = true;
 
             }
         } else {
             telemetry.addLine("No tags detected");
+            tagSpotted = false;
         }
 
 
@@ -351,37 +356,47 @@ public class StarterTeleOpTag extends OpMode {
         }
         if (gamepad2.dpad_left) {
             isOnBlueTeam=true;
+            ROT_OFFSET = 8;
         }
         if (gamepad2.dpad_right) {
             isOnBlueTeam=false;
+            ROT_OFFSET = -8;
         }
 
         if (gamepad1.x) {
-            switch (tagAlignState) {
-                case NO_TAG:
-                    if ((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam == true) {
-                        tagAlignState = TagAlignState.ROTATE;
-                    }
-                    break;
-                case ROTATE:
-                    rotateByAmount(tag.ftcPose.yaw);
-                    if (Math.abs(tag.ftcPose.yaw) < 5) {tagAlignState = TagAlignState.X_POS;}
-                    break;
-                case X_POS:
-                    xByAmount(tag.ftcPose.x);
-                    if (Math.abs(tag.ftcPose.x) < 5) {tagAlignState = TagAlignState.Y_POS;}
-                    if (Math.abs(tag.ftcPose.yaw) > 5) {tagAlignState = TagAlignState.ROTATE;}
-                    break;
-                case Y_POS:
-                    yByAmount(tag.ftcPose.y);
-                    if (Math.abs(tag.ftcPose.y - TARGET_DISTANCE) < 5) {tagAlignState = TagAlignState.DONE;}
-                    if (Math.abs(tag.ftcPose.x) > 5) {tagAlignState = TagAlignState.X_POS;}
-                    if (Math.abs(tag.ftcPose.yaw) > 5) {tagAlignState = TagAlignState.ROTATE;}
-                    break;
-                case DONE:
+            if (tagSpotted) {
+                switch (tagAlignState) {
+                    case NO_TAG:
+                        if (((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam) == true) {
+                            tagAlignState = TagAlignState.ROTATE;
+                        }
+                        break;
+                    case ROTATE:
+                        rotateByAmount(tag.ftcPose.yaw - ROT_OFFSET);
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) < 3) {tagAlignState = TagAlignState.X_POS;}
+                        break;
+                    case X_POS:
+                        xByAmount(tag.ftcPose.x - X_OFFSET);
+                        if (Math.abs(tag.ftcPose.x) < 4) {tagAlignState = TagAlignState.Y_POS;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+                        break;
+                    case Y_POS:
+                        yByAmount(tag.ftcPose.y - Y_OFFSET);
+                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
+                        if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.X_POS;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+                        break;
+                    case DONE:
+                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) > 3) {tagAlignState = TagAlignState.Y_POS;}
+                        if (Math.abs(tag.ftcPose.x - X_OFFSET) >4) {tagAlignState = TagAlignState.X_POS;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
 
-                    break;
+                        break;
+                }
+            } else {
+                tagAlignState = TagAlignState.NO_TAG;
             }
+
         } else {
             tagAlignState = TagAlignState.NO_TAG;
         }
@@ -401,6 +416,7 @@ public class StarterTeleOpTag extends OpMode {
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.addData("motorSpeed", launcher.getVelocity());
         telemetry.addData("Launch State", launchState);
+        telemetry.addData("Tag Team Blue?", isOnBlueTeam);
 
         telemetry.update();
     }
