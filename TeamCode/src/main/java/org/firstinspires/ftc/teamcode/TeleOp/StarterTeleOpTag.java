@@ -66,13 +66,19 @@ import java.util.List;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "StarterBotTeleop", group = "StarterBot")
+@TeleOp(name = "StarterBotTeleopTag", group = "StarterBot")
 //@Disabled
-public class StarterTeleOp extends OpMode {
+public class StarterTeleOpTag extends OpMode {
     final double FEED_TIME_SECONDS = 0.15; //The feeder servos run this long when a shot is requested.
     final double LAUNCHER_TIME_SECONDS = 0;
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
+    final double ROTATE_CONSTANT = 0.016;
+    final double X_CONSTANT = -0.1;
+    final double Y_CONSTANT = -0.1;
+    double ROT_OFFSET = 8;
+    final double X_OFFSET = 5;
+    final double Y_OFFSET = 50;
 
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
@@ -82,6 +88,10 @@ public class StarterTeleOp extends OpMode {
      */
     final double LAUNCHER_TARGET_VELOCITY = 1125;
     final double LAUNCHER_MIN_VELOCITY = 475;
+    double yawTarget = 0;
+    double xTarget = 0;
+    boolean tagSpotted = false;
+
 
     // Declare OpMode members.
 //    private DcMotor leftDrive = null;
@@ -121,14 +131,55 @@ public class StarterTeleOp extends OpMode {
         LAUNCH,
         LAUNCHING,
     }
+    boolean isOnBlueTeam = false;
+    private enum TagAlignState {
+        NO_TAG,
+        ROTATE,
+        X_POS,
+        Y_POS,
+        DONE,
+    }
+
 
     private LaunchState launchState;
+    private TagAlignState tagAlignState;
+    private void rotateByAmount(double z) {
+        /*
+        if (z > 0) {
+            frontleft.setDirection(DcMotorSimple.Direction.FORWARD);
+            frontright.setDirection(DcMotorSimple.Direction.FORWARD);
+            backleft.setDirection(DcMotorSimple.Direction.FORWARD);
+            backright.setDirection(DcMotorSimple.Direction.FORWARD);
+        } else {
+            frontleft.setDirection(DcMotorSimple.Direction.REVERSE);
+            frontright.setDirection(DcMotorSimple.Direction.REVERSE);
+            backleft.setDirection(DcMotorSimple.Direction.REVERSE);
+            backright.setDirection(DcMotorSimple.Direction.REVERSE);
+        }
+        */
+        frontleft.setPower(z*ROTATE_CONSTANT * 1);
+        frontright.setPower(z*ROTATE_CONSTANT * -1);
+        backleft.setPower(z*ROTATE_CONSTANT * 1);
+        backright.setPower(z*ROTATE_CONSTANT * -1);
+    }
+    private void xByAmount(double x) {
+        frontleft.setPower(x*X_CONSTANT * 1);
+        frontright.setPower(x*X_CONSTANT * -1);
+        backleft.setPower(x*X_CONSTANT * -1);
+        backright.setPower(x*X_CONSTANT * 1);
+    }
+    private void yByAmount(double y) {
+        frontleft.setPower(y*Y_CONSTANT * 1);
+        frontright.setPower(y*Y_CONSTANT * 1);
+        backleft.setPower(y*Y_CONSTANT * 1);
+        backright.setPower(y*Y_CONSTANT * 1);
+    }
 
     // Setup a variable for each drive wheel to save power level for telemetry
     double leftPower;
     double rightPower;
 
-    //private AprilTagVision vision = new AprilTagVision();
+    private AprilTagVision vision = new AprilTagVision();
 
 
     /*
@@ -137,9 +188,9 @@ public class StarterTeleOp extends OpMode {
     @Override
     public void init() {
         launchState = LaunchState.IDLE;
+        tagAlignState = TagAlignState.NO_TAG;
 
-
-        //vision.init(hardwareMap);
+        vision.init(hardwareMap);
 
         /*
          * Initialize the hardware variables. Note that the strings used here as parameters
@@ -210,6 +261,8 @@ public class StarterTeleOp extends OpMode {
          * Tell the driver that initialization is complete.
          */
         telemetry.addData("Status", "Initialized");
+
+
     }
 
     /*
@@ -217,6 +270,12 @@ public class StarterTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
+        if (gamepad2.dpad_left) {
+            isOnBlueTeam=true;
+        }
+        if (gamepad2.dpad_right) {
+            isOnBlueTeam=false;
+        }
     }
 
     /*
@@ -242,19 +301,24 @@ public class StarterTeleOp extends OpMode {
          */
         //arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
+        AprilTagDetection tag = null;
         //april tag vision
-//        List<AprilTagDetection> detections = vision.getDetections();
-//        if (!detections.isEmpty()) {
-//            AprilTagDetection tag = detections.get(0);
-//            telemetry.addData("Tag ID", tag.id);
-//            if (tag.ftcPose != null) {
-//                telemetry.addData("x", tag.ftcPose.x);
-//                telemetry.addData("y", tag.ftcPose.y);
-//                telemetry.addData("z", tag.ftcPose.z);
-//            }
-//        } else {
-//            telemetry.addLine("No tags detected");
-//        }
+        List<AprilTagDetection> detections = vision.getDetections();
+        if (!detections.isEmpty()) {
+            tag = detections.get(0);
+            telemetry.addData("Tag ID", tag.id);
+            if (tag.ftcPose != null) {
+                telemetry.addData("x", tag.ftcPose.x);
+                telemetry.addData("y", tag.ftcPose.y);
+                telemetry.addData("z", tag.ftcPose.z);
+                telemetry.addData("yaw ", tag.ftcPose.yaw);
+                tagSpotted = true;
+
+            }
+        } else {
+            telemetry.addLine("No tags detected");
+            tagSpotted = false;
+        }
 
 
 
@@ -262,7 +326,7 @@ public class StarterTeleOp extends OpMode {
 
 
 
-    //sets drivetrain
+        //sets drivetrain
         if (gamepad1.left_bumper){
             omniwheelDrive(0.3);
         }
@@ -290,11 +354,54 @@ public class StarterTeleOp extends OpMode {
 
 
         }
-        if (gamepad1.x){
-            leftFeeder.setPower(0);
-            rightFeeder.setPower(0);
-
+        if (gamepad2.dpad_left) {
+            isOnBlueTeam=true;
+            ROT_OFFSET = 8;
         }
+        if (gamepad2.dpad_right) {
+            isOnBlueTeam=false;
+            ROT_OFFSET = -8;
+        }
+
+        if (gamepad1.x) {
+            if (tagSpotted) {
+                switch (tagAlignState) {
+                    case NO_TAG:
+                        if (((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam) == true) {
+                            tagAlignState = TagAlignState.ROTATE;
+                        }
+                        break;
+                    case ROTATE:
+                        rotateByAmount(tag.ftcPose.yaw - ROT_OFFSET);
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) < 3) {tagAlignState = TagAlignState.X_POS;}
+                        break;
+                    case X_POS:
+                        xByAmount(tag.ftcPose.x - X_OFFSET);
+                        if (Math.abs(tag.ftcPose.x) < 4) {tagAlignState = TagAlignState.Y_POS;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+                        break;
+                    case Y_POS:
+                        yByAmount(tag.ftcPose.y - Y_OFFSET);
+                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
+                        if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.X_POS;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+                        break;
+                    case DONE:
+                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) > 3) {tagAlignState = TagAlignState.Y_POS;}
+                        if (Math.abs(tag.ftcPose.x - X_OFFSET) >4) {tagAlignState = TagAlignState.X_POS;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+
+                        break;
+                }
+            } else {
+                tagAlignState = TagAlignState.NO_TAG;
+            }
+
+        } else {
+            tagAlignState = TagAlignState.NO_TAG;
+        }
+
+
 
 
         /*
@@ -309,7 +416,9 @@ public class StarterTeleOp extends OpMode {
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.addData("motorSpeed", launcher.getVelocity());
         telemetry.addData("Launch State", launchState);
+        telemetry.addData("Tag Team Blue?", isOnBlueTeam);
 
+        telemetry.update();
     }
 
     /*
@@ -317,7 +426,7 @@ public class StarterTeleOp extends OpMode {
      */
     @Override
     public void stop() {
-        //vision.close();
+        vision.close();
     }
 
     void arcadeDrive(double forward, double rotate) {
@@ -385,7 +494,7 @@ public class StarterTeleOp extends OpMode {
                     leftFeeder.setPower(STOP_SPEED);
                     rightFeeder.setPower(STOP_SPEED);
                     //launcher.setVelocity(0);
-                   // launcher.setPower(0);
+                    // launcher.setPower(0);
                 }
                 break;
 

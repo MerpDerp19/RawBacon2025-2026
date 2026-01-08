@@ -8,12 +8,16 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
+import org.firstinspires.ftc.teamcode.Utility.AprilTagVision;
 import org.firstinspires.ftc.teamcode.Utility.OdometryGlobalCoordinatePosition;
 
+import java.util.List;
 
-@Autonomous(name = "Shoot3LeaveRed")
-public class Shoot3LeaveRed extends LinearOpMode {
+
+@Autonomous(name = "MotifAutoRed")
+public class MotifAutoRed extends LinearOpMode {
     //Drive motors
     DcMotor right_front, right_back, left_front, left_back;
     //Odometry Wheels
@@ -25,6 +29,9 @@ public class Shoot3LeaveRed extends LinearOpMode {
     String rfName = "frontright", rbName = "backright", lfName = "frontleft", lbName = "backleft";
     String verticalLeftEncoderName = rbName, verticalRightEncoderName = lfName, horizontalEncoderName = rfName;
     int color;
+    int motif = 0;
+    private AprilTagVision vision = new AprilTagVision();
+
     DcMotor frontleft;
     DcMotor frontright;
     DcMotor backleft;
@@ -35,7 +42,7 @@ public class Shoot3LeaveRed extends LinearOpMode {
         PREPARE,
         LAUNCH,
     }
-    private Shoot3LeaveRed.LaunchState launchState;
+    private MotifAutoRed.LaunchState launchState;
 
     private enum AutoState {
         LAUNCH,
@@ -43,7 +50,7 @@ public class Shoot3LeaveRed extends LinearOpMode {
         DRIVING_AWAY_FROM_GOAL,
         COMPLETE;
     }
-    private Shoot3LeaveRed.AutoState autoState;
+    private MotifAutoRed.AutoState autoState;
     /*private enum AutonomousState {
         LAUNCH,
         WAIT_FOR_LAUNCH,
@@ -86,6 +93,8 @@ public class Shoot3LeaveRed extends LinearOpMode {
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
 
+        vision.init(hardwareMap);
+
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
 
@@ -109,6 +118,80 @@ public class Shoot3LeaveRed extends LinearOpMode {
         //goToPosition(0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 0.5*COUNTS_PER_INCH);
 
         // V START WRITING YOUR AUTO HERE!!!! V
+
+        goToPosition(0 * COUNTS_PER_INCH, -36 * COUNTS_PER_INCH, 0.5, -45, 0.5 * COUNTS_PER_INCH);
+
+        AprilTagDetection tag = null;
+        //april tag vision
+        List<AprilTagDetection> detections = vision.getDetections();
+        if (!detections.isEmpty()) {
+            tag = detections.get(0);
+            telemetry.addData("Tag ID", tag.id);
+            int motif = tag.id;
+            if (tag.ftcPose != null) {
+                telemetry.addData("x", tag.ftcPose.x);
+                telemetry.addData("y", tag.ftcPose.y);
+                telemetry.addData("z", tag.ftcPose.z);
+                telemetry.addData("yaw ", tag.ftcPose.yaw);
+
+            }
+        } else {
+            telemetry.addLine("No tags detected");
+            int motif = 0;
+        }
+
+        sleep(1000);
+
+        goToPosition(0 * COUNTS_PER_INCH, 0 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
+
+        if (motif == 21) {
+            launcher.setVelocity(24);
+            sleep(4000);
+            leftFeeder.setPower(-1);
+            rightFeeder.setPower(1);
+            sleep(150);
+            leftFeeder.setPower(0);
+            rightFeeder.setPower(0);
+        } else if (motif == 23) {
+            leftFeeder.setPower(-1);
+            rightFeeder.setPower(1);
+            sleep(150);
+            leftFeeder.setPower(0);
+            rightFeeder.setPower(0);
+            sleep(150);
+            leftFeeder.setPower(-1);
+            rightFeeder.setPower(1);
+            sleep(150);
+            leftFeeder.setPower(0);
+            rightFeeder.setPower(0);
+        }
+
+        launcher.setVelocity(47);
+        sleep(4000);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(3000);
 
         launcher.setVelocity(50);
         sleep(4000);
@@ -139,8 +222,9 @@ public class Shoot3LeaveRed extends LinearOpMode {
 
         //sleep(30000);
 
-        goToPosition(-18 * COUNTS_PER_INCH,-20 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
 
+
+        goToPosition(18 * COUNTS_PER_INCH,-20 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
 
         sleep(30000);
 
@@ -424,7 +508,7 @@ public class Shoot3LeaveRed extends LinearOpMode {
         switch (launchState) {
             case IDLE:
                 if (shotRequested) {
-                    launchState = Shoot3LeaveRed.LaunchState.PREPARE;
+                    launchState = MotifAutoRed.LaunchState.PREPARE;
                     shotTimer.reset();
                     launcherTimer.reset();
                 }
@@ -432,7 +516,7 @@ public class Shoot3LeaveRed extends LinearOpMode {
             case PREPARE:
                 launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
                 if (launcherTimer.seconds() > LAUNCH_TIME){
-                    launchState = Shoot3LeaveRed.LaunchState.LAUNCH;
+                    launchState = MotifAutoRed.LaunchState.LAUNCH;
                     leftFeeder.setPower(1);
                     rightFeeder.setPower(1);
                     feederTimer.reset();
@@ -444,7 +528,7 @@ public class Shoot3LeaveRed extends LinearOpMode {
                     rightFeeder.setPower(0);
 
                     if(shotTimer.seconds() > TIME_BETWEEN_SHOTS){
-                        launchState = Shoot3LeaveRed.LaunchState.IDLE;
+                        launchState = MotifAutoRed.LaunchState.IDLE;
                         return true;
                     }
                 }
