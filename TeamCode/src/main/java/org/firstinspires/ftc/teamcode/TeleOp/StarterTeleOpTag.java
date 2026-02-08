@@ -41,12 +41,18 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Utility.*;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import org.firstinspires.ftc.teamcode.Utility.ColorSensor;
 
 import java.util.List;
 
@@ -92,6 +98,9 @@ public class StarterTeleOpTag extends OpMode {
     double xTarget = 0;
     boolean tagSpotted = false;
 
+    double angRate = 0;
+
+
 
     // Declare OpMode members.
 //    private DcMotor leftDrive = null;
@@ -105,9 +114,16 @@ public class StarterTeleOpTag extends OpMode {
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
 
+    private Servo cam;
+
+    NormalizedColorSensor sensor;
+
     ElapsedTime feederTimer = new ElapsedTime();
 
     ElapsedTime launcherTimer = new ElapsedTime();
+
+    double hyp = 0;
+
 
     /*
      * TECH TIP: State Machines
@@ -180,7 +196,7 @@ public class StarterTeleOpTag extends OpMode {
     double rightPower;
 
     private AprilTagVision vision = new AprilTagVision();
-
+    private ColorSensor sensing = new ColorSensor();
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -207,6 +223,9 @@ public class StarterTeleOpTag extends OpMode {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
+        sensor = hardwareMap.get(NormalizedColorSensor.class, "color_sensor");
+        cam = hardwareMap.get(Servo.class, "cam");
+
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -276,6 +295,17 @@ public class StarterTeleOpTag extends OpMode {
         if (gamepad2.dpad_right) {
             isOnBlueTeam=false;
         }
+
+        ColorSensor.DetectedColor color = sensing.getDetectedColor(sensor);
+
+        telemetry.addData("red: ", sensing.normRed);
+        telemetry.addData("green: ", sensing.normGreen);
+        telemetry.addData("blue: ", sensing.normBlue);
+
+        if (color == ColorSensor.DetectedColor.BLUE)
+            isOnBlueTeam = true;
+         else
+            isOnBlueTeam = false;
     }
 
     /*
@@ -324,36 +354,59 @@ public class StarterTeleOpTag extends OpMode {
 
 
 
-
-
         //sets drivetrain
         if (gamepad1.left_bumper){
+            //slow mode
             omniwheelDrive(0.3);
         }
         else if (gamepad1.right_bumper){
+            //fast mode
             omniwheelDrive(1);
         }
+        //normal
         else omniwheelDrive(0.75);
 
 
-        /*
-         * Here we give the user control of the speed of the launcher motor without automatically
-         * queuing a shot.
-         */
+
+        if (tagSpotted && gamepad2.x) {
+
+            hyp = Math.sqrt((tag.ftcPose.y * tag.ftcPose.y) + (tag.ftcPose.x * tag.ftcPose.x));
+
+            //converts from inches to meters
+            double dis = (hyp * 2.54) / 100;
+
+            //inputs distance from goal, angle of launch, and change of height of launch
+            angRate = getLaunchValue(dis, Math.toRadians(52) , 0.84);
+            cam.setPosition(0.5);
+
+            // 0.6 = 60 degrees
+            // 0.5 = 52 degrees
+
+
+        }
+
+        telemetry.addData("hyp: ", hyp);
+        telemetry.addData("angRate: ", angRate);
+
+        //against goal preset
+        if (gamepad2.a){
+            angRate = 140;
+            cam.setPosition(1);
+        }
+
+
+
         if (gamepad2.y) {
-            launcher.setVelocity(50);
-            //launcher.setPower(0.2);
+            //sets velocity in degrees per second, 360/19.23 = 1 rev/sec
+            //we divide by 19.23 because we changed the gear ratio of the launch motor
+            launcher.setVelocity(angRate, AngleUnit.DEGREES);
+
         } else if (gamepad2.b) { // stop flywheel
             launcher.setVelocity(STOP_SPEED);
 
         }
 
-        if (gamepad1.a){
-//            leftFeeder.setPower(1);
-//            rightFeeder.setPower(1);
 
-
-        }
         if (gamepad2.dpad_left) {
             isOnBlueTeam=true;
             ROT_OFFSET = 8;
@@ -362,6 +415,8 @@ public class StarterTeleOpTag extends OpMode {
             isOnBlueTeam=false;
             ROT_OFFSET = -8;
         }
+
+
 
         if (gamepad1.x) {
             if (tagSpotted) {
@@ -429,23 +484,27 @@ public class StarterTeleOpTag extends OpMode {
         vision.close();
     }
 
-    void arcadeDrive(double forward, double rotate) {
-        leftPower = forward + rotate;
-        rightPower = forward - rotate;
 
-        /*
-         * Send calculated power to wheels
-         */
-        if (!gamepad1.left_bumper) {
-//            leftDrive.setPower(leftPower * 0.75);
-//            rightDrive.setPower(rightPower * 0.75);
-        } else
-        {
-//            leftDrive.setPower(leftPower * 0.25);
-//            rightDrive.setPower(rightPower * 0.25);
+    //params
+    // x = distance from goal (m)
+    // theta = ramp angle (radians)
+    // y = change in height: goal height - bot height (m)
+    double getLaunchValue(double x, double theta, double y ){
 
-        }
+        // C = D * pi
+        double wheelCir = 0.095 * Math.PI;
+
+        //calculates velocity based of kinematics equation
+        double velocity = Math.sqrt((9.8 * x * x) /
+                (2 * Math.cos(theta) * Math.cos(theta) * (x * Math.tan(theta) - y) ));
+
+        // divides by wheel circumference to get angular velocity
+        // multiplies of 360 to convert to degrees
+        // divides by 19.23 to account for change in gear ratio
+        return (velocity / wheelCir * 360) / 19.23;
     }
+
+
 
     void omniwheelDrive(double speed){
         double Pad2RightStickY = -gamepad2.right_stick_y;
