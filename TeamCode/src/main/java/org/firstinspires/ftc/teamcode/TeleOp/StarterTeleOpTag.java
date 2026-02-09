@@ -114,7 +114,7 @@ public class StarterTeleOpTag extends OpMode {
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
 
-    private Servo cam;
+    Servo cam;
 
     NormalizedColorSensor sensor;
 
@@ -123,6 +123,12 @@ public class StarterTeleOpTag extends OpMode {
     ElapsedTime launcherTimer = new ElapsedTime();
 
     double hyp = 0;
+
+    double camAngle = 75;
+
+    double camPos = 1;
+
+    double dis = 0;
 
 
     /*
@@ -373,20 +379,29 @@ public class StarterTeleOpTag extends OpMode {
             hyp = Math.sqrt((tag.ftcPose.y * tag.ftcPose.y) + (tag.ftcPose.x * tag.ftcPose.x));
 
             //converts from inches to meters
-            double dis = (hyp * 2.54) / 100;
+            dis = (hyp * 2.54) / 100;
 
             //inputs distance from goal, angle of launch, and change of height of launch
-            angRate = getLaunchValue(dis, Math.toRadians(52) , 0.84);
-            cam.setPosition(0.5);
+            camAngle = -0.205357 * hyp + 75;
+            camPos = -0.00446429 * hyp + 0.5;
+
+            angRate = getLaunchValue(dis, Math.toRadians(camAngle) , 0.35);
+
 
             // 0.6 = 60 degrees
             // 0.5 = 52 degrees
 
-
         }
+
+        cam.setPosition(camPos);
+
 
         telemetry.addData("hyp: ", hyp);
         telemetry.addData("angRate: ", angRate);
+        telemetry.addData("camAngle: ", camAngle);
+        telemetry.addData("camPos: ", camPos);
+
+
 
         //against goal preset
         if (gamepad2.a){
@@ -501,7 +516,7 @@ public class StarterTeleOpTag extends OpMode {
         // divides by wheel circumference to get angular velocity
         // multiplies of 360 to convert to degrees
         // divides by 19.23 to account for change in gear ratio
-        return (velocity / wheelCir * 360) / 19.23;
+        return ((velocity / wheelCir) * 360) / (19.23 * 1.5);
     }
 
 
