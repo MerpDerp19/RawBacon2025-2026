@@ -122,13 +122,22 @@ public class StarterTeleOpTag extends OpMode {
 
     ElapsedTime launcherTimer = new ElapsedTime();
 
-    double hyp = 0;
+    double disI = 0;
 
     double camAngle = 75;
 
     double camPos = 1;
 
-    double dis = 0;
+    double disM = 0;
+
+    // 1.35 - 1.60 magic number
+    double MagicNumber = 1.35;
+
+    // april tag coods for far launch
+    // x = 7.27
+    //y = 108.6
+    // z = -8.94
+    //yaw = -30.45
 
 
     /*
@@ -376,28 +385,38 @@ public class StarterTeleOpTag extends OpMode {
 
         if (tagSpotted && gamepad2.x) {
 
-            hyp = Math.sqrt((tag.ftcPose.y * tag.ftcPose.y) + (tag.ftcPose.x * tag.ftcPose.x));
+            disI = Math.hypot(tag.ftcPose.x, tag.ftcPose.y);
 
             //converts from inches to meters
-            dis = (hyp * 2.54) / 100;
+            disM = (disI * 2.54) / 100;
 
-            //inputs distance from goal, angle of launch, and change of height of launch
-            camAngle = -0.205357 * hyp + 75;
-            camPos = -0.00446429 * hyp + 0.5;
+            //linear functions for cam angle
+            //camAngle is what is plugged into getLaunchValue (degrees)
+            //camPos is the position we set the servo to
+//            camAngle = -0.106195 * disI + 80;
+//            camPos = -0.00446429 * disI + 1;
 
-            angRate = getLaunchValue(dis, Math.toRadians(camAngle) , 0.35);
+            MagicNumber = 0.00378788 * disI +1.17197;
+
+            camAngle = 68;
+            camPos = 0.5;
 
 
-            // 0.6 = 60 degrees
-            // 0.5 = 52 degrees
+            //inputs distance from goal (meters), angle of launch (radians), and change in height (meters)
+            angRate = getLaunchValue(disM, Math.toRadians(camAngle) , 0.35);
+
+
+            // 1 = 80 degrees
+            // 0.5 = 68 degrees
 
         }
 
-        cam.setPosition(camPos);
+        // sets cam position and limits between 0.5 and 1
+        cam.setPosition(Math.max(0.5, Math.min(camPos, 1)));
 
 
-        telemetry.addData("hyp: ", hyp);
-        telemetry.addData("angRate: ", angRate);
+        telemetry.addData("distance (inches): ", disI);
+        telemetry.addData("distance (meters): ", disM);
         telemetry.addData("camAngle: ", camAngle);
         telemetry.addData("camPos: ", camPos);
 
@@ -406,7 +425,7 @@ public class StarterTeleOpTag extends OpMode {
         //against goal preset
         if (gamepad2.a){
             angRate = 140;
-            cam.setPosition(1);
+            camPos = 1;
         }
 
 
@@ -516,7 +535,7 @@ public class StarterTeleOpTag extends OpMode {
         // divides by wheel circumference to get angular velocity
         // multiplies of 360 to convert to degrees
         // divides by 19.23 to account for change in gear ratio
-        return ((velocity / wheelCir) * 360) / (19.23 * 1.5);
+        return ((velocity / wheelCir) * 360) / (19.23 * MagicNumber);
     }
 
 
