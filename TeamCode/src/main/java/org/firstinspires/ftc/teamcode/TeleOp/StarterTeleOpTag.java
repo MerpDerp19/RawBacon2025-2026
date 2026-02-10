@@ -83,8 +83,8 @@ public class StarterTeleOpTag extends OpMode {
     final double X_CONSTANT = -0.1;
     final double Y_CONSTANT = -0.1;
     double ROT_OFFSET = 8;
-    final double X_OFFSET = 5;
-    final double Y_OFFSET = 50;
+    double X_OFFSET = 5;
+    double Y_OFFSET = 50;
 
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
@@ -166,7 +166,7 @@ public class StarterTeleOpTag extends OpMode {
     private enum TagAlignState {
         NO_TAG,
         ROTATE,
-        X_POS,
+        POSITION,
         Y_POS,
         DONE,
     }
@@ -204,6 +204,13 @@ public class StarterTeleOpTag extends OpMode {
         frontright.setPower(y*Y_CONSTANT * 1);
         backleft.setPower(y*Y_CONSTANT * 1);
         backright.setPower(y*Y_CONSTANT * 1);
+        
+    }
+    private void xAndYByAmount(double x, double y){
+        frontleft.setPower(y*Y_CONSTANT * 1 + x*X_CONSTANT * 1);
+        frontright.setPower(y*Y_CONSTANT * 1 + x*X_CONSTANT * -1);
+        backleft.setPower(y*Y_CONSTANT * 1 + x*X_CONSTANT * -1);
+        backright.setPower(y*Y_CONSTANT * 1 + x*X_CONSTANT * 1);
     }
 
     // Setup a variable for each drive wheel to save power level for telemetry
@@ -364,6 +371,35 @@ public class StarterTeleOpTag extends OpMode {
             telemetry.addLine("No tags detected");
             tagSpotted = false;
         }
+        // april tag coods for far launch
+        // x = 7.27
+        //y = 108.6
+        // z = -8.94
+        //yaw = -30.45
+        if (isOnBlueTeam && gamepad1.dpad_up) {
+            ROT_OFFSET = 8;
+            X_OFFSET = 5;
+            Y_OFFSET = 50;
+        }
+        if (!isOnBlueTeam && gamepad1.dpad_up) {
+            ROT_OFFSET = -8;
+            X_OFFSET = 7.27;
+            Y_OFFSET = 108.6;
+        }
+        if (isOnBlueTeam && gamepad1.dpad_down) {
+            ROT_OFFSET = 30;
+            X_OFFSET = 5;
+            Y_OFFSET = 50;
+        }
+        if (!isOnBlueTeam && gamepad1.dpad_down) {
+            ROT_OFFSET = -30;
+            X_OFFSET = 7.27;
+            Y_OFFSET = 108.6;
+        }
+
+        //ROT_OFFSET = 8;
+        //X_OFFSET = 5;
+        //Y_OFFSET = 50;
 
 
 
@@ -441,14 +477,7 @@ public class StarterTeleOpTag extends OpMode {
         }
 
 
-        if (gamepad2.dpad_left) {
-            isOnBlueTeam=true;
-            ROT_OFFSET = 8;
-        }
-        if (gamepad2.dpad_right) {
-            isOnBlueTeam=false;
-            ROT_OFFSET = -8;
-        }
+
 
 
 
@@ -462,22 +491,22 @@ public class StarterTeleOpTag extends OpMode {
                         break;
                     case ROTATE:
                         rotateByAmount(tag.ftcPose.yaw - ROT_OFFSET);
-                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) < 3) {tagAlignState = TagAlignState.X_POS;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) < 3) {tagAlignState = TagAlignState.POSITION;}
                         break;
-                    case X_POS:
-                        xByAmount(tag.ftcPose.x - X_OFFSET);
-                        if (Math.abs(tag.ftcPose.x) < 4) {tagAlignState = TagAlignState.Y_POS;}
+                    case POSITION:
+                        xAndYByAmount(tag.ftcPose.x - X_OFFSET, tag.ftcPose.y - Y_OFFSET);
+                        if (Math.abs(tag.ftcPose.x - X_OFFSET) < 4 && Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
                         if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
                         break;
-                    case Y_POS:
-                        yByAmount(tag.ftcPose.y - Y_OFFSET);
-                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
-                        if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.X_POS;}
-                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
-                        break;
+                    //case Y_POS:
+                    //    yByAmount(tag.ftcPose.y - Y_OFFSET);
+                    //    if (Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
+                    //    if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.POSITION;}
+                    //    if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+                    //    break;
                     case DONE:
-                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) > 3) {tagAlignState = TagAlignState.Y_POS;}
-                        if (Math.abs(tag.ftcPose.x - X_OFFSET) >4) {tagAlignState = TagAlignState.X_POS;}
+                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) > 3) {tagAlignState = TagAlignState.POSITION;}
+                        if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.POSITION;}
                         if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
 
                         break;
