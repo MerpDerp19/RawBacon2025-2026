@@ -108,6 +108,7 @@ public class TeleOpA extends OpMode {
 
         if (gamepad1.x) launcherTest.setPower(0);
 
+
 //        if (gamepad2.right_trigger == 1 && gamepad2.left_trigger == 1)
 //            armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 //
