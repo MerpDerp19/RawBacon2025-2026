@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
@@ -36,6 +37,7 @@ public class MotifAutoBlue extends LinearOpMode {
     DcMotor frontright;
     DcMotor backleft;
     DcMotor backright;
+    Servo cam;
 
     private enum LaunchState {
         IDLE,
@@ -92,6 +94,7 @@ public class MotifAutoBlue extends LinearOpMode {
         launcher = hardwareMap.get(DcMotorEx.class,"launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
+        cam = hardwareMap.get(Servo.class, "cam");
 
         vision.init(hardwareMap);
 
@@ -118,17 +121,18 @@ public class MotifAutoBlue extends LinearOpMode {
         //goToPosition(0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 0.5*COUNTS_PER_INCH);
 
         // V START WRITING YOUR AUTO HERE!!!! V
-        launcher.setVelocity(26);
-        goToPosition(0 * COUNTS_PER_INCH, -55 * COUNTS_PER_INCH, 0.5, 45, 0.5 * COUNTS_PER_INCH);
+        cam.setPosition(0.5);
+        launcher.setVelocity(360);
+        goToPosition(0 * COUNTS_PER_INCH, -46 * COUNTS_PER_INCH, 0.5, 65, 0.5 * COUNTS_PER_INCH);
+
 
         AprilTagDetection tag = null;
         //april tag vision
         List<AprilTagDetection> detections = vision.getDetections();
         if (!detections.isEmpty()) {
             tag = detections.get(0);
+            telemetry.addData("Tag ID", tag.id);
             motif = tag.id;
-            telemetry.addData("Tag ID", motif);
-
             if (tag.ftcPose != null) {
                 telemetry.addData("x", tag.ftcPose.x);
                 telemetry.addData("y", tag.ftcPose.y);
@@ -138,85 +142,64 @@ public class MotifAutoBlue extends LinearOpMode {
             }
         } else {
             telemetry.addLine("No tags detected");
-            int motif = 0;
+            motif = 0;
         }
-        telemetry.update();
+
         sleep(1000);
-        telemetry.update();
-
-        goToPosition(0 * COUNTS_PER_INCH, 0 * COUNTS_PER_INCH, 0.5, -5, 2 * COUNTS_PER_INCH);
-
-        switch (motif) {
-
-            case 21:
-                telemetry.update();
-            sleep(500);
+        goToPosition (-4 * COUNTS_PER_INCH, -10 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
+        goToPosition(-4 * COUNTS_PER_INCH, 0 * COUNTS_PER_INCH, 0.5, 0, 2 * COUNTS_PER_INCH);
+        sleep(1000);
+        if (motif == 21) {
             leftFeeder.setPower(-1);
             rightFeeder.setPower(1);
-            sleep(990);
+            sleep(200);
             leftFeeder.setPower(0);
             rightFeeder.setPower(0);
-            telemetry.addLine("Ran 21");
-            break;
-
-            case 23:
-                sleep(500);
-                leftFeeder.setPower(-1);
-                rightFeeder.setPower(1);
-                sleep(990);
-                leftFeeder.setPower(0);
-                rightFeeder.setPower(0);
-                sleep(1500);
-                leftFeeder.setPower(-1);
-                rightFeeder.setPower(1);
-                sleep(150);
-                leftFeeder.setPower(0);
-                rightFeeder.setPower(0);
-                launcher.setPower(0);
-                telemetry.addLine("Ran 23");
-                break;
-
+        } else if (motif == 23) {
+            leftFeeder.setPower(-1);
+            rightFeeder.setPower(1);
+            sleep(200);
+            leftFeeder.setPower(0);
+            rightFeeder.setPower(0);
+            sleep(1600);
+            leftFeeder.setPower(-1);
+            rightFeeder.setPower(1);
+            sleep(200);
+            leftFeeder.setPower(0);
+            rightFeeder.setPower(0);
         }
-
-        //launcher.setPower(0.1);
-
-
-        telemetry.update();
-
-        sleep(1500);
-        launcher.setVelocity(47);
+        sleep(1000);
+        cam.setPosition(1);
+        sleep(1150);
+        launcher.setVelocity(1100);
         sleep(4000);
         leftFeeder.setPower(-1);
         rightFeeder.setPower(1);
         sleep(150);
         leftFeeder.setPower(0);
         rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
+        sleep(1500);
+        leftFeeder.setPower(-1);
+        rightFeeder.setPower(1);
+        sleep(150);
+        leftFeeder.setPower(0);
+        rightFeeder.setPower(0);
         sleep(3000);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        launcher.setVelocity(50);
-        sleep(4500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-
-
-
 
         goToPosition(18 * COUNTS_PER_INCH,-20 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
-
+        launcher.setVelocity(0);
         sleep(30000);
 
 
