@@ -425,7 +425,7 @@ public class StarterTeleOpTag extends OpMode {
 
 
         if (tagSpotted && gamepad2.x) {
-
+            launcherMode = 1;
             disI = Math.hypot(tag.ftcPose.x, tag.ftcPose.y);
 
             //converts from inches to meters
@@ -463,31 +463,37 @@ public class StarterTeleOpTag extends OpMode {
         telemetry.addData("distance (meters): ", disM);
         telemetry.addData("camAngle: ", camAngle);
         telemetry.addData("camPos: ", camPos);
+        telemetry.addData("launcherMode", launcherMode);
 
 
 
         //against goal preset
         if (gamepad2.a){
-            angRate = 140;
-            camPos = 1;
+            launcherMode = 3;
         }
 
 
 
-        if (gamepad2.y) {
-            //sets velocity in degrees per second, 360/19.23 = 1 rev/sec
-            //we divide by 19.23 because we changed the gear ratio of the launch motor
-            launcherMode = 1;
-
-        } else if (gamepad2.b) { // stop flywheel
+        if (gamepad2.b) { // stop flywheel
             launcherMode = 0;
 
+        } else if (gamepad2.y) {
+            launcherMode = 2;
         }
 
         if (launcherMode == 1) {
             launcher.setVelocity(angRate, AngleUnit.DEGREES);
-        } else {
+            camPos = 0.5;
+        } else if (launcherMode == 0) {
             launcher.setVelocity(0);
+            camPos = 0.5;
+        } else if (launcherMode == 2) {
+            camPos = 0.5;
+            launcher.setVelocity(360);
+        } else if (launcherMode == 3) {
+            launcher.setVelocity(angRate, AngleUnit.DEGREES);
+            angRate = 140;
+            camPos = 1;
         }
 
 
@@ -544,10 +550,10 @@ public class StarterTeleOpTag extends OpMode {
         /*
          * Show the state and motor powers
          */
-        telemetry.addData("State", launchState);
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("motorSpeed", launcher.getVelocity());
-        telemetry.addData("Launch State", launchState);
+        //telemetry.addData("State", launchState);
+        //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        //telemetry.addData("motorSpeed", launcher.getVelocity());
+        //telemetry.addData("Launch State", launchState);
         telemetry.addData("Tag Team Blue?", isOnBlueTeam);
 
         telemetry.update();
