@@ -41,18 +41,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Utility.*;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import org.firstinspires.ftc.teamcode.Utility.ColorSensor;
 
 import java.util.List;
 
@@ -72,9 +66,9 @@ import java.util.List;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "StarterBotTeleopTag", group = "StarterBot")
+@TeleOp(name = "BotTeleopTrig", group = "StarterBot")
 //@Disabled
-public class StarterTeleOpTag extends OpMode {
+public class TeleOpTrig extends OpMode {
     final double FEED_TIME_SECONDS = 0.15; //The feeder servos run this long when a shot is requested.
     final double LAUNCHER_TIME_SECONDS = 0;
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
@@ -83,12 +77,8 @@ public class StarterTeleOpTag extends OpMode {
     final double X_CONSTANT = -0.1;
     final double Y_CONSTANT = -0.1;
     double ROT_OFFSET = 8;
-    double X_OFFSET = 5;
-    double Y_OFFSET = 50;
-    int launcherMode = 0;
-    //0 = off
-    //1 = constant adjustment
-    final int Three = 3;
+    final double X_OFFSET = 5;
+    final double Y_OFFSET = 50;
 
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
@@ -100,10 +90,12 @@ public class StarterTeleOpTag extends OpMode {
     final double LAUNCHER_MIN_VELOCITY = 475;
     double yawTarget = 0;
     double xTarget = 0;
+    double trigX=  0;
+    double trigY = 0;
+    double trigDistance = 0;
+    double trigYaw = 0;
+    double trigPitch = 0;
     boolean tagSpotted = false;
-
-    double angRate = 0;
-
 
 
     // Declare OpMode members.
@@ -118,32 +110,9 @@ public class StarterTeleOpTag extends OpMode {
     private CRServo leftFeeder = null;
     private CRServo rightFeeder = null;
 
-    Servo cam;
-
-    NormalizedColorSensor sensor;
-
     ElapsedTime feederTimer = new ElapsedTime();
 
     ElapsedTime launcherTimer = new ElapsedTime();
-
-    double disI = 0;
-
-    double camAngle = 75;
-
-    double camPos = 1;
-
-    double disM = 0;
-
-    // 1.35 - 1.60 magic number
-
-    double MagicNumber = 0.7;
-
-    // april tag coods for far launch
-    // x = 7.27
-    //y = 108.6
-    // z = -8.94
-    //yaw = -30.45
-
 
     /*
      * TECH TIP: State Machines
@@ -171,7 +140,7 @@ public class StarterTeleOpTag extends OpMode {
     private enum TagAlignState {
         NO_TAG,
         ROTATE,
-        POSITION,
+        X_POS,
         Y_POS,
         DONE,
     }
@@ -209,13 +178,6 @@ public class StarterTeleOpTag extends OpMode {
         frontright.setPower(y*Y_CONSTANT * 1);
         backleft.setPower(y*Y_CONSTANT * 1);
         backright.setPower(y*Y_CONSTANT * 1);
-        
-    }
-    private void xAndYByAmount(double x, double y){
-        frontleft.setPower(y*Y_CONSTANT * 1 + x*X_CONSTANT * 1);
-        frontright.setPower(y*Y_CONSTANT * 1 + x*X_CONSTANT * -1);
-        backleft.setPower(y*Y_CONSTANT * 1 + x*X_CONSTANT * -1);
-        backright.setPower(y*Y_CONSTANT * 1 + x*X_CONSTANT * 1);
     }
 
     // Setup a variable for each drive wheel to save power level for telemetry
@@ -223,7 +185,7 @@ public class StarterTeleOpTag extends OpMode {
     double rightPower;
 
     private AprilTagVision vision = new AprilTagVision();
-    private ColorSensor sensing = new ColorSensor();
+
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -250,9 +212,6 @@ public class StarterTeleOpTag extends OpMode {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
-        sensor = hardwareMap.get(NormalizedColorSensor.class, "color_sensor");
-        cam = hardwareMap.get(Servo.class, "cam");
-
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -322,17 +281,6 @@ public class StarterTeleOpTag extends OpMode {
         if (gamepad2.dpad_right) {
             isOnBlueTeam=false;
         }
-
-        ColorSensor.DetectedColor color = sensing.getDetectedColor(sensor);
-
-        telemetry.addData("red: ", sensing.normRed);
-        telemetry.addData("green: ", sensing.normGreen);
-        telemetry.addData("blue: ", sensing.normBlue);
-
-        if (color == ColorSensor.DetectedColor.BLUE)
-            isOnBlueTeam = true;
-         else
-            isOnBlueTeam = false;
     }
 
     /*
@@ -376,35 +324,8 @@ public class StarterTeleOpTag extends OpMode {
             telemetry.addLine("No tags detected");
             tagSpotted = false;
         }
-        // april tag coods for far launch
-        // x = 7.27
-        //y = 108.6
-        // z = -8.94
-        //yaw = -30.45
-        if (isOnBlueTeam && gamepad1.dpad_up) {
-            ROT_OFFSET = 8;
-            X_OFFSET = 5;
-            Y_OFFSET = 50;
-        }
-        if (!isOnBlueTeam && gamepad1.dpad_up) {
-            ROT_OFFSET = -8;
-            X_OFFSET = 7.27;
-            Y_OFFSET = 108.6;
-        }
-        if (isOnBlueTeam && gamepad1.dpad_down) {
-            ROT_OFFSET = 30;
-            X_OFFSET = 5;
-            Y_OFFSET = 50;
-        }
-        if (!isOnBlueTeam && gamepad1.dpad_down) {
-            ROT_OFFSET = -30;
-            X_OFFSET = 7.27;
-            Y_OFFSET = 108.6;
-        }
 
-        //ROT_OFFSET = 8;
-        //X_OFFSET = 5;
-        //Y_OFFSET = 50;
+
 
 
 
@@ -412,88 +333,50 @@ public class StarterTeleOpTag extends OpMode {
 
         //sets drivetrain
         if (gamepad1.left_bumper){
-            //slow mode
             omniwheelDrive(0.3);
         }
         else if (gamepad1.right_bumper){
-            //fast mode
             omniwheelDrive(1);
         }
-        //normal
         else omniwheelDrive(0.75);
 
 
-
-        if (tagSpotted && gamepad2.x) {
-
-            disI = Math.hypot(tag.ftcPose.x, tag.ftcPose.y);
-
-            //converts from inches to meters
-            disM = (disI * 2.54) / 100;
-
-            //linear functions for cam angle
-            //camAngle is what is plugged into getLaunchValue (degrees)
-            //camPos is the position we set the servo to
-//            camAngle = -0.106195 * disI + 80;
-//            camPos = -0.00446429 * disI + 1;
-
-            MagicNumber = -0.000357143 * disI +0.688571;
-
-            camAngle = 62;
-            camPos = 0.5;
-
-//            if (disI >= 80){
-//                MagicNumber = 0.65;
-//            } else MagicNumber = 0.67;
-
-            //inputs distance from goal (meters), angle of launch (radians), and change in height (meters)
-            angRate = getLaunchValue(disM, Math.toRadians(camAngle) , 0.35);
-
-
-            // 1 = 80 degrees
-            // 0.5 = 62 degrees
-
-        }
-
-        // sets cam position and limits between 0.5 and 1
-        cam.setPosition(Math.max(0.5, Math.min(camPos, 1)));
-
-
-        telemetry.addData("distance (inches): ", disI);
-        telemetry.addData("distance (meters): ", disM);
-        telemetry.addData("camAngle: ", camAngle);
-        telemetry.addData("camPos: ", camPos);
-
-
-
-        //against goal preset
-        if (gamepad2.a){
-            angRate = 140;
-            camPos = 1;
-        }
-
-
-
+        /*
+         * Here we give the user control of the speed of the launcher motor without automatically
+         * queuing a shot.
+         */
         if (gamepad2.y) {
-            //sets velocity in degrees per second, 360/19.23 = 1 rev/sec
-            //we divide by 19.23 because we changed the gear ratio of the launch motor
-            launcherMode = 1;
-
+            launcher.setVelocity(50);
+            //launcher.setPower(0.2);
         } else if (gamepad2.b) { // stop flywheel
-            launcherMode = 0;
+            launcher.setVelocity(STOP_SPEED);
 
         }
 
-        if (launcherMode == 1) {
-            launcher.setVelocity(angRate, AngleUnit.DEGREES);
-        } else {
-            launcher.setVelocity(0);
+        if (gamepad1.a){
+//            leftFeeder.setPower(1);
+//            rightFeeder.setPower(1);
+
+
         }
+        if (gamepad2.dpad_left) {
+            isOnBlueTeam=true;
+            ROT_OFFSET = 8;
+        }
+        if (gamepad2.dpad_right) {
+            isOnBlueTeam=false;
+            ROT_OFFSET = -8;
+        }
+        if (tagSpotted) {
+            if (tag.id == 24) {
+                //runciode
+            } else {
+                trigDistance = Math.sqrt(Math.pow(tag.ftcPose.x , 2) + Math.pow(tag.ftcPose.y , 2) + Math.pow(tag.ftcPose.z, 2));
+                trigYaw = Math.toDegrees(Math.atan2(tag.ftcPose.y, tag.ftcPose.x));
+                trigPitch = Math.toDegrees(Math.atan2(tag.ftcPose.z, Math.sqrt(Math.pow(tag.ftcPose.x , 2) + Math.pow(tag.ftcPose.y , 2))));
 
-
-
-
-
+            }
+        }
 
         if (gamepad1.x) {
             if (tagSpotted) {
@@ -505,22 +388,22 @@ public class StarterTeleOpTag extends OpMode {
                         break;
                     case ROTATE:
                         rotateByAmount(tag.ftcPose.yaw - ROT_OFFSET);
-                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) < 3) {tagAlignState = TagAlignState.POSITION;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) < 3) {tagAlignState = TagAlignState.X_POS;}
                         break;
-                    case POSITION:
-                        xAndYByAmount(tag.ftcPose.x - X_OFFSET, tag.ftcPose.y - Y_OFFSET);
-                        if (Math.abs(tag.ftcPose.x - X_OFFSET) < 4 && Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
+                    case X_POS:
+                        xByAmount(tag.ftcPose.x - X_OFFSET);
+                        if (Math.abs(tag.ftcPose.x) < 4) {tagAlignState = TagAlignState.Y_POS;}
                         if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
                         break;
-                    //case Y_POS:
-                    //    yByAmount(tag.ftcPose.y - Y_OFFSET);
-                    //    if (Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
-                    //    if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.POSITION;}
-                    //    if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
-                    //    break;
+                    case Y_POS:
+                        yByAmount(tag.ftcPose.y - Y_OFFSET);
+                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
+                        if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.X_POS;}
+                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+                        break;
                     case DONE:
-                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) > 3) {tagAlignState = TagAlignState.POSITION;}
-                        if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.POSITION;}
+                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) > 3) {tagAlignState = TagAlignState.Y_POS;}
+                        if (Math.abs(tag.ftcPose.x - X_OFFSET) >4) {tagAlignState = TagAlignState.X_POS;}
                         if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
 
                         break;
@@ -549,6 +432,11 @@ public class StarterTeleOpTag extends OpMode {
         telemetry.addData("motorSpeed", launcher.getVelocity());
         telemetry.addData("Launch State", launchState);
         telemetry.addData("Tag Team Blue?", isOnBlueTeam);
+        if (tagSpotted) {
+            telemetry.addData("trigComputedYaw?", tag.ftcPose.yaw - trigYaw);
+        }
+        telemetry.addData("TrigDistance", trigDistance);
+
 
         telemetry.update();
     }
@@ -561,27 +449,23 @@ public class StarterTeleOpTag extends OpMode {
         vision.close();
     }
 
+    void arcadeDrive(double forward, double rotate) {
+        leftPower = forward + rotate;
+        rightPower = forward - rotate;
 
-    //params
-    // x = distance from goal (m)
-    // theta = ramp angle (radians)
-    // y = change in height: goal height - bot height (m)
-    double getLaunchValue(double x, double theta, double y ){
+        /*
+         * Send calculated power to wheels
+         */
+        if (!gamepad1.left_bumper) {
+//            leftDrive.setPower(leftPower * 0.75);
+//            rightDrive.setPower(rightPower * 0.75);
+        } else
+        {
+//            leftDrive.setPower(leftPower * 0.25);
+//            rightDrive.setPower(rightPower * 0.25);
 
-        // C = D * pi
-        double wheelCir = 0.095 * Math.PI;
-
-        //calculates velocity based of kinematics equation
-        double velocity = Math.sqrt((9.8 * x * x) /
-                (2 * Math.cos(theta) * Math.cos(theta) * (x * Math.tan(theta) - y) ));
-
-        // divides by wheel circumference to get angular velocity
-        // multiplies of 360 to convert to degrees
-        // divides by 19.23 to account for change in gear ratio
-        return (((velocity / wheelCir) * 360) / (19.23)) * MagicNumber;
+        }
     }
-
-
 
     void omniwheelDrive(double speed){
         double Pad2RightStickY = -gamepad2.right_stick_y;
