@@ -80,8 +80,10 @@ public class StarterTeleOpTag extends OpMode {
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
     final double ROTATE_CONSTANT = 0.016;
-    final double X_CONSTANT = -0.1;
-    final double Y_CONSTANT = -0.1;
+    final double X_CONSTANT = 0.1;
+    final double Y_CONSTANT = 0.1;
+    final double APRIL_TAG_BACKWARDSNESS = 0.002 ; //the bigger the number is, the more the robot will angle behind the april tag and hopefully into the goal.
+    final double FACE_GOAL_SPEED = 1;
     double ROT_OFFSET = 8;
     double X_OFFSET = 5;
     double Y_OFFSET = 50;
@@ -517,6 +519,13 @@ public class StarterTeleOpTag extends OpMode {
 
         } else {
             tagAlignState = TagAlignState.NO_TAG;
+        }
+        if (gamepad1.dpad_right) {
+            if (tagSpotted) {
+                if (((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam)) {
+                    rotateByAmount( FACE_GOAL_SPEED * (tag.ftcPose.x - (tag.ftcPose.yaw * APRIL_TAG_BACKWARDSNESS)));
+                }
+            }
         }
 
 
