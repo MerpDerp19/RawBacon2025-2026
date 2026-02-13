@@ -466,7 +466,7 @@ public class StarterTeleOpTag extends OpMode {
         telemetry.addData("camAngle: ", camAngle);
         telemetry.addData("camPos: ", camPos);
         telemetry.addData("launcherMode", launcherMode);
-
+        telemetry.addData("angRate: ", angRate);
 
 
         //against goal preset
