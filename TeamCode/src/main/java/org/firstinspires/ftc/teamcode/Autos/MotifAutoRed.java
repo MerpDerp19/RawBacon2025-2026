@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
@@ -36,6 +37,7 @@ public class MotifAutoRed extends LinearOpMode {
     DcMotor frontright;
     DcMotor backleft;
     DcMotor backright;
+    Servo cam;
 
     private enum LaunchState {
         IDLE,
@@ -92,6 +94,7 @@ public class MotifAutoRed extends LinearOpMode {
         launcher = hardwareMap.get(DcMotorEx.class,"launcher");
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
+        cam = hardwareMap.get(Servo.class, "cam");
 
         vision.init(hardwareMap);
 
@@ -118,8 +121,10 @@ public class MotifAutoRed extends LinearOpMode {
         //goToPosition(0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 0.5*COUNTS_PER_INCH);
 
         // V START WRITING YOUR AUTO HERE!!!! V
+        cam.setPosition(0.5);
+        launcher.setVelocity(360);
+        goToPosition(0 * COUNTS_PER_INCH, -46 * COUNTS_PER_INCH, 0.5, -55, 0.5 * COUNTS_PER_INCH);
 
-        goToPosition(0 * COUNTS_PER_INCH, -36 * COUNTS_PER_INCH, 0.5, -45, 0.5 * COUNTS_PER_INCH);
 
         AprilTagDetection tag = null;
         //april tag vision
@@ -127,7 +132,7 @@ public class MotifAutoRed extends LinearOpMode {
         if (!detections.isEmpty()) {
             tag = detections.get(0);
             telemetry.addData("Tag ID", tag.id);
-            int motif = tag.id;
+            motif = tag.id;
             if (tag.ftcPose != null) {
                 telemetry.addData("x", tag.ftcPose.x);
                 telemetry.addData("y", tag.ftcPose.y);
@@ -137,36 +142,36 @@ public class MotifAutoRed extends LinearOpMode {
             }
         } else {
             telemetry.addLine("No tags detected");
-            int motif = 0;
+            motif = 0;
         }
 
         sleep(1000);
-
-        goToPosition(0 * COUNTS_PER_INCH, 0 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
-
+        goToPosition(0 * COUNTS_PER_INCH, -10 * COUNTS_PER_INCH, 0.5, -7, 0.5 * COUNTS_PER_INCH);
+        goToPosition(0 * COUNTS_PER_INCH, 0 * COUNTS_PER_INCH, 0.8, -7, 2 * COUNTS_PER_INCH);
+        sleep(1000);
         if (motif == 21) {
-            launcher.setVelocity(24);
-            sleep(4000);
             leftFeeder.setPower(-1);
             rightFeeder.setPower(1);
-            sleep(150);
+            sleep(200);
             leftFeeder.setPower(0);
             rightFeeder.setPower(0);
         } else if (motif == 23) {
             leftFeeder.setPower(-1);
             rightFeeder.setPower(1);
-            sleep(150);
+            sleep(200);
             leftFeeder.setPower(0);
             rightFeeder.setPower(0);
-            sleep(150);
+            sleep(1600);
             leftFeeder.setPower(-1);
             rightFeeder.setPower(1);
-            sleep(150);
+            sleep(200);
             leftFeeder.setPower(0);
             rightFeeder.setPower(0);
         }
-
-        launcher.setVelocity(47);
+        sleep(1000);
+        cam.setPosition(1);
+        sleep(1150);
+        launcher.setVelocity(1100);
         sleep(4000);
         leftFeeder.setPower(-1);
         rightFeeder.setPower(1);
@@ -193,39 +198,8 @@ public class MotifAutoRed extends LinearOpMode {
         rightFeeder.setPower(0);
         sleep(3000);
 
-        launcher.setVelocity(50);
-        sleep(4000);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(1500);
-        leftFeeder.setPower(-1);
-        rightFeeder.setPower(1);
-        sleep(150);
-        leftFeeder.setPower(0);
-        rightFeeder.setPower(0);
-        sleep(3000);
-
-        //sleep(30000);
-
-
-
-        goToPosition(18 * COUNTS_PER_INCH,-20 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
-
+        goToPosition(-18 * COUNTS_PER_INCH,-20 * COUNTS_PER_INCH, 0.5, 0, 0.5 * COUNTS_PER_INCH);
+        launcher.setVelocity(0);
         sleep(30000);
 
 

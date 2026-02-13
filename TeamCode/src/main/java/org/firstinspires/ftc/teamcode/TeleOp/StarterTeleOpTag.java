@@ -87,6 +87,10 @@ public class StarterTeleOpTag extends OpMode {
     double ROT_OFFSET = 8;
     double X_OFFSET = 5;
     double Y_OFFSET = 50;
+    int launcherMode = 0;
+    //0 = off
+    //1 = constant adjustment
+    final int Three = 3;
 
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
@@ -133,7 +137,8 @@ public class StarterTeleOpTag extends OpMode {
     double disM = 0;
 
     // 1.35 - 1.60 magic number
-    double MagicNumber = 1.35;
+
+    double MagicNumber = 0.7;
 
     // april tag coods for far launch
     // x = 7.27
@@ -422,7 +427,7 @@ public class StarterTeleOpTag extends OpMode {
 
 
         if (tagSpotted && gamepad2.x) {
-
+            launcherMode = 1;
             disI = Math.hypot(tag.ftcPose.x, tag.ftcPose.y);
 
             //converts from inches to meters
@@ -434,18 +439,21 @@ public class StarterTeleOpTag extends OpMode {
 //            camAngle = -0.106195 * disI + 80;
 //            camPos = -0.00446429 * disI + 1;
 
-            MagicNumber = 0.00378788 * disI +1.17197;
+            MagicNumber = -0.000357143 * disI +0.688571;
 
-            camAngle = 68;
+            camAngle = 62;
             camPos = 0.5;
 
+//            if (disI >= 80){
+//                MagicNumber = 0.65;
+//            } else MagicNumber = 0.67;
 
             //inputs distance from goal (meters), angle of launch (radians), and change in height (meters)
             angRate = getLaunchValue(disM, Math.toRadians(camAngle) , 0.35);
 
 
             // 1 = 80 degrees
-            // 0.5 = 68 degrees
+            // 0.5 = 62 degrees
 
         }
 
@@ -457,25 +465,37 @@ public class StarterTeleOpTag extends OpMode {
         telemetry.addData("distance (meters): ", disM);
         telemetry.addData("camAngle: ", camAngle);
         telemetry.addData("camPos: ", camPos);
+        telemetry.addData("launcherMode", launcherMode);
 
 
 
         //against goal preset
         if (gamepad2.a){
-            angRate = 140;
-            camPos = 1;
+            launcherMode = 3;
         }
 
 
 
-        if (gamepad2.y) {
-            //sets velocity in degrees per second, 360/19.23 = 1 rev/sec
-            //we divide by 19.23 because we changed the gear ratio of the launch motor
+        if (gamepad2.b) { // stop flywheel
+            launcherMode = 0;
+
+        } else if (gamepad2.y) {
+            launcherMode = 2;
+        }
+
+        if (launcherMode == 1) {
             launcher.setVelocity(angRate, AngleUnit.DEGREES);
-
-        } else if (gamepad2.b) { // stop flywheel
-            launcher.setVelocity(STOP_SPEED);
-
+            camPos = 0.5;
+        } else if (launcherMode == 0) {
+            launcher.setVelocity(0);
+            camPos = 0.5;
+        } else if (launcherMode == 2) {
+            camPos = 0.5;
+            launcher.setVelocity(360);
+        } else if (launcherMode == 3) {
+            launcher.setVelocity(angRate, AngleUnit.DEGREES);
+            angRate = 140;
+            camPos = 1;
         }
 
 
@@ -539,10 +559,10 @@ public class StarterTeleOpTag extends OpMode {
         /*
          * Show the state and motor powers
          */
-        telemetry.addData("State", launchState);
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("motorSpeed", launcher.getVelocity());
-        telemetry.addData("Launch State", launchState);
+        //telemetry.addData("State", launchState);
+        //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        //telemetry.addData("motorSpeed", launcher.getVelocity());
+        //telemetry.addData("Launch State", launchState);
         telemetry.addData("Tag Team Blue?", isOnBlueTeam);
 
         telemetry.update();
@@ -573,7 +593,7 @@ public class StarterTeleOpTag extends OpMode {
         // divides by wheel circumference to get angular velocity
         // multiplies of 360 to convert to degrees
         // divides by 19.23 to account for change in gear ratio
-        return ((velocity / wheelCir) * 360) / (19.23 * MagicNumber);
+        return (((velocity / wheelCir) * 360) / (19.23)) * MagicNumber;
     }
 
 
