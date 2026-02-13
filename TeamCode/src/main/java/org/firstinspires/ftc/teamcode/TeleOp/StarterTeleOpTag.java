@@ -82,12 +82,13 @@ public class StarterTeleOpTag extends OpMode {
     final double ROTATE_CONSTANT = 0.016;
     final double X_CONSTANT = 0.1;
     final double Y_CONSTANT = 0.1;
-    final double APRIL_TAG_BACKWARDSNESS = -0.002 ; //the bigger the number is, the more the robot will angle behind the april tag and hopefully into the goal.
+    final double APRIL_TAG_BACKWARDSNESS = -0.004 ; //the bigger the number is, the more the robot will angle behind the april tag and hopefully into the goal.
     final double FACE_GOAL_SPEED = -1.5;
     double ROT_OFFSET = 8;
     double X_OFFSET = 5;
     double Y_OFFSET = 50;
     int launcherMode = 0;
+    double tagCameraXAdjustment = 65;
     //0 = off
     //1 = constant adjustment
     final int Three = 3;
@@ -451,7 +452,7 @@ public class StarterTeleOpTag extends OpMode {
 //            camAngle = -0.106195 * disI + 80;
 //            camPos = -0.00446429 * disI + 1;
 
-            MagicNumber = -0.000357143 * disI +0.688571;
+            MagicNumber = -0.000357143 * disI + 0.71;
 
             camAngle = 62;
             camPos = 0.5;
@@ -501,7 +502,7 @@ public class StarterTeleOpTag extends OpMode {
             camPos = 0.5;
         } else if (launcherMode == 0) {
             launcher.setVelocity(0);
-            camPos = 0.5;
+            camPos = 1;
         } else if (launcherMode == 2) {
             camPos = 0.5;
             launcher.setVelocity(360);
@@ -553,10 +554,15 @@ public class StarterTeleOpTag extends OpMode {
 //        } else {
 //            tagAlignState = TagAlignState.NO_TAG;
 //        }
-        if (gamepad1.dpad_right) {
+        if(isOnBlueTeam) {
+            tagCameraXAdjustment = 55;
+        } else {
+            tagCameraXAdjustment = 75;
+        }
+        if (gamepad1.dpad_right || gamepad2.x) {
             if (tagSpotted) {
                 if (((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam)) {
-                    rotateByAmount( FACE_GOAL_SPEED * (tag.ftcPose.x - 5 - (tag.ftcPose.yaw * APRIL_TAG_BACKWARDSNESS)));
+                    rotateByAmount( FACE_GOAL_SPEED * (tag.ftcPose.x - (6 * tag.ftcPose.y/60) - (tag.ftcPose.yaw * APRIL_TAG_BACKWARDSNESS)));
                 }
             }
         }
