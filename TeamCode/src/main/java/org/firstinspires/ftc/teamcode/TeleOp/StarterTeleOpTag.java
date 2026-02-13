@@ -82,8 +82,8 @@ public class StarterTeleOpTag extends OpMode {
     final double ROTATE_CONSTANT = 0.016;
     final double X_CONSTANT = 0.1;
     final double Y_CONSTANT = 0.1;
-    final double APRIL_TAG_BACKWARDSNESS = 0.002 ; //the bigger the number is, the more the robot will angle behind the april tag and hopefully into the goal.
-    final double FACE_GOAL_SPEED = 1;
+    final double APRIL_TAG_BACKWARDSNESS = -0.002 ; //the bigger the number is, the more the robot will angle behind the april tag and hopefully into the goal.
+    final double FACE_GOAL_SPEED = -1.5;
     double ROT_OFFSET = 8;
     double X_OFFSET = 5;
     double Y_OFFSET = 50;
@@ -365,14 +365,26 @@ public class StarterTeleOpTag extends OpMode {
         List<AprilTagDetection> detections = vision.getDetections();
         if (!detections.isEmpty()) {
             tag = detections.get(0);
-            telemetry.addData("Tag ID", tag.id);
-            if (tag.ftcPose != null) {
+
+            if (tag.ftcPose != null && (tag.id == 20 || tag.id == 24)) {
+                telemetry.addData("Tag ID", tag.id);
                 telemetry.addData("x", tag.ftcPose.x);
                 telemetry.addData("y", tag.ftcPose.y);
                 telemetry.addData("z", tag.ftcPose.z);
                 telemetry.addData("yaw ", tag.ftcPose.yaw);
                 tagSpotted = true;
 
+            } else {
+                if (detections.size() > 1)
+                tag = detections.get(1);
+                if (tag.ftcPose != null) {
+                    telemetry.addData("Tag ID", tag.id);
+                    telemetry.addData("x", tag.ftcPose.x);
+                    telemetry.addData("y", tag.ftcPose.y);
+                    telemetry.addData("z", tag.ftcPose.z);
+                    telemetry.addData("yaw ", tag.ftcPose.yaw);
+                    tagSpotted = true;
+                }
             }
         } else {
             telemetry.addLine("No tags detected");
@@ -466,6 +478,7 @@ public class StarterTeleOpTag extends OpMode {
         telemetry.addData("camAngle: ", camAngle);
         telemetry.addData("camPos: ", camPos);
         telemetry.addData("launcherMode", launcherMode);
+        telemetry.addData("angRate: ", angRate);
 
 
 
@@ -503,47 +516,47 @@ public class StarterTeleOpTag extends OpMode {
 
 
 
-        if (gamepad1.x) {
-            if (tagSpotted) {
-                switch (tagAlignState) {
-                    case NO_TAG:
-                        if (((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam) == true) {
-                            tagAlignState = TagAlignState.ROTATE;
-                        }
-                        break;
-                    case ROTATE:
-                        rotateByAmount(tag.ftcPose.yaw - ROT_OFFSET);
-                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) < 3) {tagAlignState = TagAlignState.POSITION;}
-                        break;
-                    case POSITION:
-                        xAndYByAmount(tag.ftcPose.x - X_OFFSET, tag.ftcPose.y - Y_OFFSET);
-                        if (Math.abs(tag.ftcPose.x - X_OFFSET) < 4 && Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
-                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
-                        break;
-                    //case Y_POS:
-                    //    yByAmount(tag.ftcPose.y - Y_OFFSET);
-                    //    if (Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
-                    //    if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.POSITION;}
-                    //    if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
-                    //    break;
-                    case DONE:
-                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) > 3) {tagAlignState = TagAlignState.POSITION;}
-                        if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.POSITION;}
-                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
-
-                        break;
-                }
-            } else {
-                tagAlignState = TagAlignState.NO_TAG;
-            }
-
-        } else {
-            tagAlignState = TagAlignState.NO_TAG;
-        }
+//        if (gamepad1.x) {
+//            if (tagSpotted) {
+//                switch (tagAlignState) {
+//                    case NO_TAG:
+//                        if (((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam) == true) {
+//                            tagAlignState = TagAlignState.ROTATE;
+//                        }
+//                        break;
+//                    case ROTATE:
+//                        rotateByAmount(tag.ftcPose.yaw - ROT_OFFSET);
+//                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) < 3) {tagAlignState = TagAlignState.POSITION;}
+//                        break;
+//                    case POSITION:
+//                        xAndYByAmount(tag.ftcPose.x - X_OFFSET, tag.ftcPose.y - Y_OFFSET);
+//                        if (Math.abs(tag.ftcPose.x - X_OFFSET) < 4 && Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
+//                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+//                        break;
+//                    //case Y_POS:
+//                    //    yByAmount(tag.ftcPose.y - Y_OFFSET);
+//                    //    if (Math.abs(tag.ftcPose.y - Y_OFFSET) < 3) {tagAlignState = TagAlignState.DONE;}
+//                    //    if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.POSITION;}
+//                    //    if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+//                    //    break;
+//                    case DONE:
+//                        if (Math.abs(tag.ftcPose.y - Y_OFFSET) > 3) {tagAlignState = TagAlignState.POSITION;}
+//                        if (Math.abs(tag.ftcPose.x - X_OFFSET) > 4) {tagAlignState = TagAlignState.POSITION;}
+//                        if (Math.abs(tag.ftcPose.yaw - ROT_OFFSET) > 3) {tagAlignState = TagAlignState.ROTATE;}
+//
+//                        break;
+//                }
+//            } else {
+//                tagAlignState = TagAlignState.NO_TAG;
+//            }
+//
+//        } else {
+//            tagAlignState = TagAlignState.NO_TAG;
+//        }
         if (gamepad1.dpad_right) {
             if (tagSpotted) {
                 if (((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam)) {
-                    rotateByAmount( FACE_GOAL_SPEED * (tag.ftcPose.x - (tag.ftcPose.yaw * APRIL_TAG_BACKWARDSNESS)));
+                    rotateByAmount( FACE_GOAL_SPEED * (tag.ftcPose.x - 5 - (tag.ftcPose.yaw * APRIL_TAG_BACKWARDSNESS)));
                 }
             }
         }
