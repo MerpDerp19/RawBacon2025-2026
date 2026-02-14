@@ -133,7 +133,7 @@ public class StarterTeleOpTag extends OpMode {
 
     double camAngle = 75;
 
-    double camPos = 1;
+    double camPos = 0.9;
 
     double disM = 0;
 
@@ -376,15 +376,16 @@ public class StarterTeleOpTag extends OpMode {
                 tagSpotted = true;
 
             } else {
-                if (detections.size() > 1)
-                tag = detections.get(1);
-                if (tag.ftcPose != null) {
-                    telemetry.addData("Tag ID", tag.id);
-                    telemetry.addData("x", tag.ftcPose.x);
-                    telemetry.addData("y", tag.ftcPose.y);
-                    telemetry.addData("z", tag.ftcPose.z);
-                    telemetry.addData("yaw ", tag.ftcPose.yaw);
-                    tagSpotted = true;
+                if (detections.size() > 1) {
+                    tag = detections.get(1);
+                    if (tag.ftcPose != null) {
+                        telemetry.addData("Tag ID", tag.id);
+                        telemetry.addData("x", tag.ftcPose.x);
+                        telemetry.addData("y", tag.ftcPose.y);
+                        telemetry.addData("z", tag.ftcPose.z);
+                        telemetry.addData("yaw ", tag.ftcPose.yaw);
+                        tagSpotted = true;
+                    }
                 }
             }
         } else {
@@ -471,7 +472,7 @@ public class StarterTeleOpTag extends OpMode {
         }
 
         // sets cam position and limits between 0.5 and 1
-        cam.setPosition(Math.max(0.5, Math.min(camPos, 1)));
+        cam.setPosition(Math.max(0.5, Math.min(camPos, 0.9)));
 
 
         telemetry.addData("distance (inches): ", disI);
@@ -502,14 +503,14 @@ public class StarterTeleOpTag extends OpMode {
             camPos = 0.5;
         } else if (launcherMode == 0) {
             launcher.setVelocity(0);
-            camPos = 1;
+            camPos = 0.5;
         } else if (launcherMode == 2) {
             camPos = 0.5;
             launcher.setVelocity(360);
         } else if (launcherMode == 3) {
             launcher.setVelocity(angRate, AngleUnit.DEGREES);
             angRate = 140;
-            camPos = 1;
+            camPos = 0.9;
         }
 
 
@@ -555,14 +556,14 @@ public class StarterTeleOpTag extends OpMode {
 //            tagAlignState = TagAlignState.NO_TAG;
 //        }
         if(isOnBlueTeam) {
-            tagCameraXAdjustment = 55;
+            tagCameraXAdjustment = 47;
         } else {
-            tagCameraXAdjustment = 75;
+            tagCameraXAdjustment = 65;
         }
         if (gamepad1.dpad_right || gamepad2.x) {
             if (tagSpotted) {
                 if (((((tag.id - 20) / 4) == 1) ^ isOnBlueTeam)) {
-                    rotateByAmount( FACE_GOAL_SPEED * (tag.ftcPose.x - (6 * tag.ftcPose.y/60) - (tag.ftcPose.yaw * APRIL_TAG_BACKWARDSNESS)));
+                    rotateByAmount( FACE_GOAL_SPEED * (tag.ftcPose.x - (7 * tag.ftcPose.y/tagCameraXAdjustment) - (tag.ftcPose.yaw * APRIL_TAG_BACKWARDSNESS)));
                 }
             }
         }
